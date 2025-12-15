@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Auth App',
       initialRoute: '/splash',
+      debugShowCheckedModeBanner: false,
       routes: appRoutes,
     );
   }

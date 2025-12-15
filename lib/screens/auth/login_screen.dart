@@ -2,6 +2,10 @@ import 'package:auth/controllers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+const String _appName = 'Nun Authenticator';
+const String _googleAsset = 'assets/images/google.png';
+const String _githubAsset = 'assets/images/github.png';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -15,80 +19,217 @@ class _LoginScreenState extends State<LoginScreen> {
   bool loading = false;
 
   @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin(AuthProvider auth) async {
+    setState(() => loading = true);
+    try {
+      await auth.login(emailController.text, passwordController.text);
+
+      if (!mounted) return;
+      if (auth.is2FARequired) {
+        Navigator.pushReplacementNamed(context, '/2fa');
+      } else {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => loading = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
+    const double _textSize = 16.0;
+
+    final primaryColor = Theme.of(context).primaryColor;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
-          children: [
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            SizedBox(height: MediaQuery.paddingOf(context).top + 60),
+
+            Text(
+              'Welcome Back',
+              style: TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+                color: primaryColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Sign in to your $_appName account',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+
+            const SizedBox(height: 40),
+
             TextField(
               controller: emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
+              keyboardType: TextInputType.emailAddress,
+              decoration: _inputDecoration('Email', Icons.email_outlined),
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
               obscureText: true,
+              decoration: _inputDecoration('Password', Icons.lock_outline),
             ),
-            const SizedBox(height: 20),
-            loading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: () async {
-                      setState(() => loading = true);
-                      try {
-                        await auth.login(
-                          emailController.text,
-                          passwordController.text,
-                        );
 
-                        if (!mounted) return;
-                        if (auth.is2FARequired) {
-                          Navigator.pushReplacementNamed(context, '/2fa');
-                        } else {
-                          Navigator.pushReplacementNamed(context, '/home');
-                        }
-                      } catch (e) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(e.toString())));
-                      } finally {
-                        if (mounted)
-                          setState(
-                            () => loading = false,
-                          ); // fix control_flow_in_finally
-                      }
-                    },
-                    child: const Text('Login'),
-                  ),
-            TextButton(
-              onPressed: () {
-                if (!mounted) return;
-                Navigator.pushNamed(context, '/signup');
-              },
-              child: const Text("Don't have an account? Sign Up"),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () =>
+                    Navigator.pushNamed(context, '/forgot-password'),
+                child: Text(
+                  "Forgot Password?",
+                  style: TextStyle(color: primaryColor),
+                ),
+              ),
             ),
-            TextButton(
-              onPressed: () {
-                if (!mounted) return;
-                Navigator.pushNamed(context, '/forgot-password');
-              },
-              child: const Text("Forgot Password?"),
-            ),
+
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async => await auth.oauthLogin('google'),
-              child: const Text('Login with Google'),
+
+            loading
+                ? Center(child: CircularProgressIndicator(color: primaryColor))
+                : ElevatedButton(
+                    onPressed: loading ? null : () => _handleLogin(auth),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Login',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
+                  ),
+
+            const SizedBox(height: 24),
+
+            const Row(
+              children: [
+                Expanded(child: Divider()),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Text('OR', style: TextStyle(color: Colors.grey)),
+                ),
+                Expanded(child: Divider()),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () async => await auth.oauthLogin('github'),
-              child: const Text('Login with GitHub'),
+
+            const SizedBox(height: 24),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _SocialLoginButton(
+                  assetPath: _googleAsset,
+                  onPressed: () async => await auth.oauthLogin('google'),
+                  label: 'Google',
+                ),
+                _SocialLoginButton(
+                  assetPath: _githubAsset,
+                  onPressed: () async => await auth.oauthLogin('github'),
+                  label: 'GitHub',
+                ),
+              ],
             ),
+
+            const SizedBox(height: 40),
+
+            TextButton(
+              onPressed: () => Navigator.pushNamed(context, '/signup'),
+              child: RichText(
+                text: TextSpan(
+                  text: "Don't have an account? ",
+                  style: TextStyle(
+                    fontSize: _textSize,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: "Sign Up",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: primaryColor,
+                        fontSize: _textSize,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            SizedBox(height: 40),
           ],
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: Theme.of(context).primaryColor),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+      ),
+    );
+  }
+}
+
+class _SocialLoginButton extends StatelessWidget {
+  final String assetPath;
+  final VoidCallback onPressed;
+  final String label;
+
+  const _SocialLoginButton({
+    required this.assetPath,
+    required this.onPressed,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: OutlinedButton.icon(
+          onPressed: onPressed,
+          icon: Image.asset(assetPath, height: 24.0),
+          label: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14.0),
+            child: Text(label, style: const TextStyle(fontSize: 16)),
+          ),
+          style: OutlinedButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            side: BorderSide(color: Colors.grey.shade300),
+          ),
         ),
       ),
     );

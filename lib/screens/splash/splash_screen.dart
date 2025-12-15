@@ -52,6 +52,7 @@ class _SplashScreenState extends State<SplashScreen> {
               height: 100,
               width: 100,
               color: primaryColor,
+              colorBlendMode: BlendMode.srcIn,
             ),
 
             const SizedBox(height: 24),
