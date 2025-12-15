@@ -1,23 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:otp/otp.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:auth/models/authenticator_model.dart';
 
+final supabase = Supabase.instance.client;
+
 class AuthenticatorProvider extends ChangeNotifier {
-  final List<AuthenticatorAccount> _accounts = [];
+  List<AuthenticatorAccount> _accounts = [];
   List<AuthenticatorAccount> get accounts => _accounts;
 
-  void addAccount({
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  Future<void> fetchAccounts() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await supabase
+          .from('totp_secrets')
+          .select('*')
+          .order('created_at', ascending: true);
+
+      _accounts = (response as List<dynamic>)
+          .map(
+            (item) =>
+                AuthenticatorAccount.fromMap(item as Map<String, dynamic>),
+          )
+          .toList();
+    } catch (e) {
+      debugPrint('Error fetching TOTP accounts: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> addAccount({
     required String serviceName,
     required String email,
     required String secret,
-  }) {
-    final newAccount = AuthenticatorAccount(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      serviceName: serviceName,
-      email: email,
-      secret: secret,
-    );
+  }) async {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) {
+      throw Exception('User must be logged in to add an account.');
+    }
+
+    final newAccountData = {
+      'user_id': userId,
+      'service_name': serviceName,
+      'email': email,
+      'secret': secret,
+    };
+
+    final response = await supabase
+        .from('totp_secrets')
+        .insert(newAccountData)
+        .select()
+        .single();
+
+    final newAccount = AuthenticatorAccount.fromMap(response);
     _accounts.add(newAccount);
+
     notifyListeners();
   }
 

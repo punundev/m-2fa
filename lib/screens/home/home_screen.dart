@@ -1,11 +1,12 @@
 import 'dart:async';
+import 'package:auth/screens/scan/qr_scanner_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:otp/otp.dart';
 import 'package:auth/controllers/auth_provider.dart';
 import 'package:auth/controllers/authenticator_provider.dart';
 import 'package:auth/models/authenticator_model.dart';
-import 'package:otp/otp.dart';
 
 const String _appName = 'Nun Auth';
 
@@ -22,6 +23,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthenticatorProvider>().fetchAccounts();
+    });
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {});
@@ -35,26 +40,14 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _simulateAddAccount(BuildContext context) {
-    final secretKey = OTP.randomSecret();
+  void _handleAddAccount(BuildContext context) async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const QRScannerScreen()));
 
-    context.read<AuthenticatorProvider>().addAccount(
-      serviceName: 'GitHub',
-      email: 'user_github@example.com',
-      secret: secretKey,
-    );
-
-    context.read<AuthenticatorProvider>().addAccount(
-      serviceName: 'My Bank App',
-      email: 'user_bank@example.com',
-      secret: OTP.randomSecret(),
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Simulated GitHub and Bank accounts added!'),
-      ),
-    );
+    if (mounted) {
+      context.read<AuthenticatorProvider>().fetchAccounts();
+    }
   }
 
   @override
@@ -79,11 +72,6 @@ class _HomeScreenState extends State<HomeScreen> {
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.person_outline),
-            tooltip: 'Account Settings',
-            onPressed: () => Navigator.of(context).pushNamed('/profile'),
-          ),
-          IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
             onPressed: () async {
@@ -96,7 +84,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
 
-      body: accounts.isEmpty
+      body: authenticatorProvider.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : accounts.isEmpty
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -138,10 +128,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          _simulateAddAccount(context);
-        },
-        icon: const Icon(Icons.add_a_photo),
+        onPressed: () => _handleAddAccount(context),
+        icon: const Icon(Icons.qr_code_scanner),
         label: const Text('Add Account'),
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
