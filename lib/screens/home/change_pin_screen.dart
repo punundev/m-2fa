@@ -19,10 +19,27 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
 
-  InputDecoration _pinInputDecoration(
-    String label,
-    Color primaryColor, {
-    bool isPassword = false,
+  bool _isCurrentPasswordVisible = false;
+  bool _isNewPinVisible = false;
+  bool _isConfirmPinVisible = false;
+
+  void _toggleVisibility(bool isPassword) {
+    setState(() {
+      if (isPassword) {
+        _isCurrentPasswordVisible = !_isCurrentPasswordVisible;
+      } else {
+        _isNewPinVisible = !_isNewPinVisible;
+        _isConfirmPinVisible = !_isConfirmPinVisible;
+      }
+    });
+  }
+
+  InputDecoration _customInputDecoration({
+    required String label,
+    required Color primaryColor,
+    required bool isObscure,
+    required bool isPassword,
+    required VoidCallback toggleVisibility,
   }) {
     return InputDecoration(
       labelText: label,
@@ -32,6 +49,13 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: primaryColor, width: 2),
+      ),
+      suffixIcon: IconButton(
+        icon: Icon(
+          isObscure ? Icons.visibility : Icons.visibility_off,
+          color: primaryColor,
+        ),
+        onPressed: toggleVisibility,
       ),
     );
   }
@@ -115,12 +139,14 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
 
               TextFormField(
                 controller: _currentPasswordController,
-                obscureText: true,
+                obscureText: !_isCurrentPasswordVisible,
                 keyboardType: TextInputType.visiblePassword,
-                decoration: _pinInputDecoration(
-                  'Current Account Password',
-                  primaryColor,
+                decoration: _customInputDecoration(
+                  label: 'Current Account Password',
+                  primaryColor: primaryColor,
                   isPassword: true,
+                  isObscure: !_isCurrentPasswordVisible,
+                  toggleVisibility: () => _toggleVisibility(true),
                 ),
                 validator: (value) {
                   if (value!.isEmpty)
@@ -136,10 +162,13 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                 controller: _newPinController,
                 keyboardType: TextInputType.number,
                 maxLength: 4,
-                obscureText: true,
-                decoration: _pinInputDecoration(
-                  'New 4-digit PIN',
-                  primaryColor,
+                obscureText: !_isNewPinVisible,
+                decoration: _customInputDecoration(
+                  label: 'New 4-digit PIN',
+                  primaryColor: primaryColor,
+                  isPassword: false,
+                  isObscure: !_isNewPinVisible,
+                  toggleVisibility: () => _toggleVisibility(false),
                 ),
                 validator: (value) {
                   if (value!.length != 4)
@@ -153,10 +182,13 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                 controller: _confirmPinController,
                 keyboardType: TextInputType.number,
                 maxLength: 4,
-                obscureText: true,
-                decoration: _pinInputDecoration(
-                  'Confirm New PIN',
-                  primaryColor,
+                obscureText: !_isConfirmPinVisible,
+                decoration: _customInputDecoration(
+                  label: 'Confirm New PIN',
+                  primaryColor: primaryColor,
+                  isPassword: false,
+                  isObscure: !_isConfirmPinVisible,
+                  toggleVisibility: () => _toggleVisibility(false),
                 ),
                 validator: (value) {
                   if (value != _newPinController.text)

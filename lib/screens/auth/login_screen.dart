@@ -18,6 +18,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
   bool loading = false;
 
+  bool _isPasswordVisible = false;
+
   @override
   void dispose() {
     emailController.dispose();
@@ -38,9 +40,13 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (!mounted) return;
+      String message = e.toString().contains('Exception:')
+          ? e.toString().split('Exception: ').last
+          : 'An unknown error occurred.';
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString()),
+          content: Text(message),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -49,6 +55,36 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() => loading = false);
       }
     }
+  }
+
+  InputDecoration _inputDecoration(
+    String label,
+    IconData icon, {
+    bool isPassword = false,
+  }) {
+    final primaryColor = Theme.of(context).primaryColor;
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: primaryColor),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: primaryColor, width: 2),
+      ),
+      suffixIcon: isPassword
+          ? IconButton(
+              icon: Icon(
+                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                color: primaryColor,
+              ),
+              onPressed: () {
+                setState(() {
+                  _isPasswordVisible = !_isPasswordVisible;
+                });
+              },
+            )
+          : null,
+    );
   }
 
   @override
@@ -88,10 +124,15 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: _inputDecoration('Email', Icons.email_outlined),
             ),
             const SizedBox(height: 16),
+
             TextField(
               controller: passwordController,
-              obscureText: true,
-              decoration: _inputDecoration('Password', Icons.lock_outline),
+              obscureText: !_isPasswordVisible,
+              decoration: _inputDecoration(
+                'Password',
+                Icons.lock_outline,
+                isPassword: true,
+              ),
             ),
 
             Align(
@@ -145,12 +186,16 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 _SocialLoginButton(
                   assetPath: _googleAsset,
-                  onPressed: () async => await auth.oauthLogin('google'),
+                  onPressed: () async {
+                    await _handleOAuthLogin(auth, 'google');
+                  },
                   label: 'Google',
                 ),
                 _SocialLoginButton(
                   assetPath: _githubAsset,
-                  onPressed: () async => await auth.oauthLogin('github'),
+                  onPressed: () async {
+                    await _handleOAuthLogin(auth, 'github');
+                  },
                   label: 'GitHub',
                 ),
               ],
@@ -188,16 +233,57 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  InputDecoration _inputDecoration(String label, IconData icon) {
-    return InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icon, color: Theme.of(context).primaryColor),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
-      ),
-    );
+  // Future<void> _handleOAuthLogin(AuthProvider auth, String provider) async {
+  //   try {
+  //     await auth.oauthLogin(provider);
+
+  //     if (!mounted) return;
+  //     if (auth.is2FARequired) {
+  //       Navigator.pushReplacementNamed(context, '/2fa');
+  //     } else {
+  //       Navigator.pushReplacementNamed(context, '/home');
+  //     }
+  //   } catch (e) {
+  //     if (!mounted) return;
+  //     String message = e.toString().contains('Exception:')
+  //         ? e.toString().split('Exception: ').last
+  //         : 'An unknown OAuth error occurred.';
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('OAuth failed: $message'),
+  //         backgroundColor: Theme.of(context).colorScheme.error,
+  //       ),
+  //     );
+  //   }
+  // }
+
+  Future<void> _handleOAuthLogin(AuthProvider auth, String provider) async {
+    setState(() => loading = true);
+
+    try {
+      await auth.oauthLogin(provider);
+
+      if (!mounted) return;
+
+      if (auth.is2FARequired) {
+        Navigator.pushReplacementNamed(context, '/2fa');
+      } else {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      String message = e.toString().contains('Exception:')
+          ? e.toString().split('Exception: ').last
+          : 'An unknown OAuth error occurred.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('OAuth failed: $message'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
   }
 }
 

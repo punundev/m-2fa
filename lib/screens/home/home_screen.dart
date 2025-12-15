@@ -130,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _handleAddAccount(context),
         icon: const Icon(Icons.qr_code_scanner),
-        label: const Text('Add Account'),
+        label: const Text('Add'),
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
       ),

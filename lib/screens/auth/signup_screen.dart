@@ -1,8 +1,6 @@
+import 'package:auth/controllers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../controllers/auth_provider.dart';
-import 'login_screen.dart';
-import '2fa_screen.dart';
 
 const String _appName = 'Nun Authenticator';
 
@@ -18,6 +16,9 @@ class _SignupScreenState extends State<SignupScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _loading = false;
+
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   void dispose() {
@@ -50,28 +51,75 @@ class _SignupScreenState extends State<SignupScreen> {
 
     setState(() => _loading = true);
     final auth = context.read<AuthProvider>();
+    final email = _emailController.text;
 
     try {
-      await auth.signup(_emailController.text, _passwordController.text);
+      await auth.signup(email, _passwordController.text);
 
       if (!mounted) return;
 
-      if (auth.is2FARequired) {
-        Navigator.of(context).pushReplacementNamed('/2fa');
-      } else {
-        Navigator.of(context).pushReplacementNamed('/login');
-      }
+      Navigator.of(
+        context,
+      ).pushReplacementNamed('/check-email', arguments: email);
     } catch (e) {
       if (!mounted) return;
+      String message = e.toString().contains('Exception:')
+          ? e.toString().split('Exception: ').last
+          : 'An unknown sign up error occurred.';
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString()),
+          content: Text(message),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  InputDecoration _inputDecoration(
+    String label,
+    IconData icon,
+    BuildContext context, {
+    bool isPassword = false,
+    bool isConfirmPassword = false,
+  }) {
+    final primaryColor = Theme.of(context).primaryColor;
+
+    bool isObscure = false;
+    VoidCallback? toggleCallback;
+
+    if (isPassword) {
+      isObscure = !_isPasswordVisible;
+      toggleCallback = () {
+        setState(() => _isPasswordVisible = !_isPasswordVisible);
+      };
+    } else if (isConfirmPassword) {
+      isObscure = !_isConfirmPasswordVisible;
+      toggleCallback = () {
+        setState(() => _isConfirmPasswordVisible = !_isConfirmPasswordVisible);
+      };
+    }
+
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: primaryColor),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: primaryColor, width: 2),
+      ),
+      suffixIcon: (isPassword || isConfirmPassword)
+          ? IconButton(
+              icon: Icon(
+                isObscure ? Icons.visibility : Icons.visibility_off,
+                color: primaryColor,
+              ),
+              onPressed: toggleCallback,
+            )
+          : null,
+    );
   }
 
   @override
@@ -112,23 +160,27 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
             ),
             const SizedBox(height: 16),
+
             TextField(
               controller: _passwordController,
-              obscureText: true,
+              obscureText: !_isPasswordVisible,
               decoration: _inputDecoration(
                 'Password (Min 8 characters)',
                 Icons.lock_outline,
                 context,
+                isPassword: true,
               ),
             ),
             const SizedBox(height: 16),
+
             TextField(
               controller: _confirmPasswordController,
-              obscureText: true,
+              obscureText: !_isConfirmPasswordVisible,
               decoration: _inputDecoration(
                 'Confirm Password',
                 Icons.lock_reset_outlined,
                 context,
+                isConfirmPassword: true,
               ),
             ),
 
@@ -179,22 +231,6 @@ class _SignupScreenState extends State<SignupScreen> {
             SizedBox(height: 40),
           ],
         ),
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration(
-    String label,
-    IconData icon,
-    BuildContext context,
-  ) {
-    return InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icon, color: Theme.of(context).primaryColor),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
       ),
     );
   }

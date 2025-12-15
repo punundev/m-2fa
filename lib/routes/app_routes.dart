@@ -1,4 +1,5 @@
 import 'package:auth/screens/auth/2fa_screen.dart';
+import 'package:auth/screens/auth/check_email_screen.dart';
 import 'package:auth/screens/auth/forgot_password_screen.dart';
 import 'package:auth/screens/auth/login_screen.dart';
 import 'package:auth/screens/auth/signup_screen.dart';
@@ -21,4 +22,5 @@ final Map<String, WidgetBuilder> appRoutes = {
   '/change-pin': (_) => const ChangePinScreen(),
   '/edit-profile': (_) => const EditProfileScreen(),
   '/register-2fa': (context) => const Register2FAScreen(),
+  '/check-email': (context) => const CheckEmailScreen(),
 };

@@ -19,6 +19,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
 
+  bool _isOldPasswordVisible = false;
+  bool _isNewPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+
   @override
   void dispose() {
     _oldPasswordController.dispose();
@@ -27,11 +31,35 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
+  InputDecoration _passwordInputDecoration({
+    required String label,
+    required IconData icon,
+    required Color primaryColor,
+    required bool isObscure,
+    required VoidCallback toggleVisibility,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: primaryColor),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: primaryColor, width: 2),
+      ),
+      suffixIcon: IconButton(
+        icon: Icon(
+          isObscure ? Icons.visibility : Icons.visibility_off,
+          color: primaryColor,
+        ),
+        onPressed: toggleVisibility,
+      ),
+    );
+  }
+
   Future<void> _handleChangePassword() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
     if (_newPasswordController.text != _confirmPasswordController.text) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -46,7 +74,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
     setState(() => _loading = true);
     String errorMessage = 'Failed to update password.';
-    final primaryColor = Theme.of(context).primaryColor;
 
     try {
       final userEmail = supabase.auth.currentUser?.email;
@@ -120,43 +147,61 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
               TextFormField(
                 controller: _oldPasswordController,
-                obscureText: true,
+                obscureText: !_isOldPasswordVisible,
                 validator: (value) =>
                     value!.isEmpty ? 'Enter your current password.' : null,
-                decoration: _inputDecoration(
-                  'Current Password',
-                  Icons.lock_outline,
-                  primaryColor,
+                decoration: _passwordInputDecoration(
+                  label: 'Current Password',
+                  icon: Icons.lock_outline,
+                  primaryColor: primaryColor,
+                  isObscure: !_isOldPasswordVisible,
+                  toggleVisibility: () {
+                    setState(() {
+                      _isOldPasswordVisible = !_isOldPasswordVisible;
+                    });
+                  },
                 ),
               ),
               const SizedBox(height: 16),
 
               TextFormField(
                 controller: _newPasswordController,
-                obscureText: true,
+                obscureText: !_isNewPasswordVisible,
                 validator: (value) =>
                     value!.isEmpty ? 'Enter a new password.' : null,
-                decoration: _inputDecoration(
-                  'New Password',
-                  Icons.vpn_key_outlined,
-                  primaryColor,
+                decoration: _passwordInputDecoration(
+                  label: 'New Password',
+                  icon: Icons.vpn_key_outlined,
+                  primaryColor: primaryColor,
+                  isObscure: !_isNewPasswordVisible,
+                  toggleVisibility: () {
+                    setState(() {
+                      _isNewPasswordVisible = !_isNewPasswordVisible;
+                    });
+                  },
                 ),
               ),
               const SizedBox(height: 16),
 
               TextFormField(
                 controller: _confirmPasswordController,
-                obscureText: true,
+                obscureText: !_isConfirmPasswordVisible,
                 validator: (value) {
                   if (value!.isEmpty) return 'Confirm your new password.';
                   if (value != _newPasswordController.text)
                     return 'Passwords do not match.';
                   return null;
                 },
-                decoration: _inputDecoration(
-                  'Confirm New Password',
-                  Icons.check_circle_outline,
-                  primaryColor,
+                decoration: _passwordInputDecoration(
+                  label: 'Confirm New Password',
+                  icon: Icons.check_circle_outline,
+                  primaryColor: primaryColor,
+                  isObscure: !_isConfirmPasswordVisible,
+                  toggleVisibility: () {
+                    setState(() {
+                      _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                    });
+                  },
                 ),
               ),
 
@@ -186,20 +231,4 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       ),
     );
   }
-}
-
-InputDecoration _inputDecoration(
-  String label,
-  IconData icon,
-  Color primaryColor,
-) {
-  return InputDecoration(
-    labelText: label,
-    prefixIcon: Icon(icon, color: primaryColor),
-    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: primaryColor, width: 2),
-    ),
-  );
 }
