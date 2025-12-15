@@ -47,5 +47,7 @@
     <true />
     <key>NSCameraUsageDescription</key>
     <string>We need camera access to scan the 2FA QR code.</string>
+    <key>NSFaceIDUsageDescription</key>
+    <string>We need access to Face ID or Touch ID to quickly and securely unlock the app.</string>
   </dict>
 </plist>

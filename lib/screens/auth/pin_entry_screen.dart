@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:auth/utils/hashing.dart';
+import 'package:auth/utils/biometric_util.dart';
 
 class PinEntryScreen extends StatefulWidget {
   const PinEntryScreen({super.key});
@@ -11,22 +12,50 @@ class PinEntryScreen extends StatefulWidget {
 
 class _PinEntryScreenState extends State<PinEntryScreen> {
   final TextEditingController _pinController = TextEditingController();
+  final BiometricUtil _biometricUtil = BiometricUtil();
   String? _remotePinHash;
   bool _loading = false;
+  bool _hasUser = false;
+  bool _biometricsAvailable = false;
 
   @override
   void initState() {
     super.initState();
-    _loadRemotePinHash();
+
+    _checkAndLoadPinData();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkBiometricsAndAuthenticate();
+    });
   }
 
-  Future<void> _loadRemotePinHash() async {
+  Future<void> _checkAndLoadPinData() async {
+    final user = Supabase.instance.client.auth.currentUser;
+
+    if (user != null) {
+      if (mounted) setState(() => _hasUser = true);
+      await _loadRemotePinHash(user.id);
+    } else {
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Session expired. Please log in again.'),
+            ),
+          );
+          Navigator.of(context).pushReplacementNamed('/login');
+        });
+      }
+    }
+  }
+
+  Future<void> _loadRemotePinHash(String userId) async {
     setState(() => _loading = true);
     try {
       final response = await Supabase.instance.client
           .from('profiles')
           .select('hashed_pin')
-          .eq('id', Supabase.instance.client.auth.currentUser!.id)
+          .eq('id', userId)
           .limit(1)
           .single();
 
@@ -36,25 +65,45 @@ class _PinEntryScreenState extends State<PinEntryScreen> {
         _remotePinHash = response['hashed_pin'] as String;
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('PIN not set up. Please set your PIN.')),
+          const SnackBar(
+            content: Text('PIN not set up. Redirecting to setup.'),
+          ),
         );
+        Navigator.of(context).pushReplacementNamed('/setup-pin');
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading PIN data: ${e.toString()}')),
       );
+      Navigator.of(context).pushReplacementNamed('/login');
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _checkBiometricsAndAuthenticate() async {
+    final isAvailable = await _biometricUtil.checkBiometricsAvailability();
+    if (!mounted) return;
+
+    setState(() {
+      _biometricsAvailable = isAvailable;
+    });
+
+    if (isAvailable) {
+      final authenticated = await _biometricUtil.authenticate();
+      if (!mounted) return;
+
+      if (authenticated) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
     }
   }
 
   void _verifyPin(String enteredPin) {
     if (_remotePinHash == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('PIN data not available. Check connection.'),
-        ),
+        const SnackBar(content: Text('PIN data not ready. Try again.')),
       );
       _pinController.clear();
       return;
@@ -89,12 +138,32 @@ class _PinEntryScreenState extends State<PinEntryScreen> {
               ),
               const SizedBox(height: 40),
 
-              _loading
+              (_loading || !_hasUser)
                   ? Center(
                       child: CircularProgressIndicator(color: primaryColor),
                     )
                   : Column(
                       children: [
+                        if (_biometricsAvailable)
+                          Column(
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  Icons.fingerprint,
+                                  size: 80,
+                                  color: primaryColor,
+                                ),
+                                onPressed: _checkBiometricsAndAuthenticate,
+                                tooltip: 'Authenticate with Biometrics',
+                              ),
+                              const SizedBox(height: 20),
+                              const Text('Tap to use Fingerprint/Face ID'),
+                              const SizedBox(height: 30),
+                              const Text('--- OR ---'),
+                              const SizedBox(height: 30),
+                            ],
+                          ),
+
                         SizedBox(
                           width: 200,
                           child: TextField(
@@ -137,12 +206,14 @@ class _PinEntryScreenState extends State<PinEntryScreen> {
                         const SizedBox(height: 60),
 
                         TextButton(
-                          onPressed: () {
-                            Navigator.of(
-                              context,
-                            ).pushReplacementNamed('/login');
+                          onPressed: () async {
+                            await Supabase.instance.client.auth.signOut();
+                            if (mounted)
+                              Navigator.of(
+                                context,
+                              ).pushReplacementNamed('/login');
                           },
-                          child: const Text('Login with Email/Password'),
+                          child: const Text('Log Out / Use different account'),
                         ),
                       ],
                     ),

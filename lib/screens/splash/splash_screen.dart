@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:auth/core/secure_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:auth/controllers/auth_provider.dart';
 
 const String _appName = 'Nun Authenticator';
 const String _logoAssetPath = 'assets/images/fingerprint.png';
@@ -12,32 +15,41 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool _isNavigating = false;
+
   @override
   void initState() {
     super.initState();
-    _checkAuth();
+    _checkAuthStateAndProfile();
   }
 
-  Future<void> _checkAuth() async {
-    await Future.delayed(const Duration(milliseconds: 1500));
+  Future<void> _checkAuthStateAndProfile() async {
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (!mounted || _isNavigating) return;
+
+    _isNavigating = true;
+
+    final auth = context.read<AuthProvider>();
+
+    final isLoggedInAndProfileReady = await auth.reloadUser();
 
     if (!mounted) return;
 
-    final token = await SecureStorage.getToken();
+    if (isLoggedInAndProfileReady) {
+      final storedPin = await SecureStorage.getPin();
 
-    final storedPin = await SecureStorage.getPin();
+      if (!mounted) return;
 
-    if (!mounted) return;
-
-    if (token != null) {
       if (storedPin != null) {
         Navigator.pushReplacementNamed(context, '/pin-entry');
       } else {
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/setup-pin');
       }
     } else {
       Navigator.pushReplacementNamed(context, '/login');
     }
+
+    _isNavigating = false;
   }
 
   @override
@@ -46,7 +58,6 @@ class _SplashScreenState extends State<SplashScreen> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final backgroundColor = isDarkMode ? Colors.black : Colors.white;
-    final textColor = isDarkMode ? Colors.white : Colors.black;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -70,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen> {
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
-                color: textColor,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
                 letterSpacing: 1.5,
               ),
             ),

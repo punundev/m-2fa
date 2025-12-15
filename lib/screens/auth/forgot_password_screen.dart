@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// Constant for the App name
 const String _appName = 'Nun Authenticator';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -14,8 +13,6 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final emailController = TextEditingController();
   bool loading = false;
-  // Use context.read<AuthProvider>() if the Supabase client is managed there,
-  // but keeping your direct initialization for simplicity.
   final supabase = Supabase.instance.client;
 
   @override
@@ -24,7 +21,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  // Helper function for consistent input decoration styling
   InputDecoration _inputDecoration(
     String label,
     IconData icon,
@@ -41,7 +37,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  // Logic to handle password reset request
   Future<void> _handlePasswordReset() async {
     if (emailController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -60,16 +55,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       if (!mounted) return;
 
-      // Success message and navigation
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Success! Check your email for the reset link.'),
-          backgroundColor: Colors.green, // Use a success color
+          backgroundColor: Colors.green,
         ),
       );
 
       if (!mounted) return;
-      // Navigate back to the Login screen after success
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
@@ -91,15 +84,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final primaryColor = Theme.of(context).primaryColor;
 
     return Scaffold(
-      // The Reset Password screen can be placed inside a back button
-      // if using an AppBar, but since we removed the AppBar, we'll
-      // add an explicit back button.
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            // --- 1. Top Spacing and Back Button ---
             SizedBox(height: MediaQuery.paddingOf(context).top + 20),
             Align(
               alignment: Alignment.centerLeft,
@@ -111,7 +100,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
             SizedBox(height: 40),
 
-            // --- 2. Branding and Instructions ---
             Text(
               'Forgot Password',
               style: TextStyle(
@@ -128,7 +116,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
             const SizedBox(height: 40),
 
-            // --- 3. Input Field ---
             TextField(
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
@@ -141,7 +128,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
             const SizedBox(height: 32),
 
-            // --- 4. Send Reset Link Button ---
             loading
                 ? Center(child: CircularProgressIndicator(color: primaryColor))
                 : ElevatedButton(
@@ -159,79 +145,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                   ),
 
-            const SizedBox(height: 80), // Bottom padding
+            const SizedBox(height: 80),
           ],
         ),
       ),
     );
   }
 }
-
-// import 'package:flutter/material.dart';
-// import 'package:supabase_flutter/supabase_flutter.dart';
-
-// class ForgotPasswordScreen extends StatefulWidget {
-//   const ForgotPasswordScreen({Key? key}) : super(key: key);
-
-//   @override
-//   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
-// }
-
-// class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-//   final emailController = TextEditingController();
-//   bool loading = false;
-//   final supabase = Supabase.instance.client;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('Forgot Password')),
-//       body: Padding(
-//         padding: const EdgeInsets.all(16),
-//         child: Column(
-//           children: [
-//             TextField(
-//               controller: emailController,
-//               decoration: const InputDecoration(labelText: 'Email'),
-//             ),
-//             const SizedBox(height: 20),
-//             loading
-//                 ? const CircularProgressIndicator()
-//                 : ElevatedButton(
-//                     onPressed: () async {
-//                       setState(() => loading = true);
-//                       try {
-//                         // Latest Supabase: resetPasswordForEmail returns void
-//                         await supabase.auth.resetPasswordForEmail(
-//                           emailController.text,
-//                           redirectTo: 'io.supabase.flutter://callback',
-//                         );
-
-//                         if (!mounted) return;
-//                         ScaffoldMessenger.of(context).showSnackBar(
-//                           const SnackBar(
-//                             content: Text(
-//                               'Check your email to reset your password.',
-//                             ),
-//                           ),
-//                         );
-//                         if (!mounted) return;
-//                         Navigator.pop(context);
-//                       } catch (e) {
-//                         if (!mounted) return;
-//                         ScaffoldMessenger.of(
-//                           context,
-//                         ).showSnackBar(SnackBar(content: Text(e.toString())));
-//                       } finally {
-//                         if (!mounted) return;
-//                         setState(() => loading = false);
-//                       }
-//                     },
-//                     child: const Text('Send Reset Link'),
-//                   ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
