@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:auth/core/secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:auth/controllers/auth_provider.dart';
@@ -36,15 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (isLoggedInAndProfileReady) {
-      final storedPin = await SecureStorage.getPin();
-
-      if (!mounted) return;
-
-      if (storedPin != null) {
-        Navigator.pushReplacementNamed(context, '/pin-entry');
-      } else {
-        Navigator.pushReplacementNamed(context, '/setup-pin');
-      }
+      Navigator.pushReplacementNamed(context, '/home');
     } else {
       Navigator.pushReplacementNamed(context, '/login');
     }
