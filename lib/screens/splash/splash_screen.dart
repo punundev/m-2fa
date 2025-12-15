@@ -24,9 +24,17 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     final token = await SecureStorage.getToken();
+
+    final storedPin = await SecureStorage.getPin();
+
     if (!mounted) return;
+
     if (token != null) {
-      Navigator.pushReplacementNamed(context, '/home');
+      if (storedPin != null) {
+        Navigator.pushReplacementNamed(context, '/pin-entry');
+      } else {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     } else {
       Navigator.pushReplacementNamed(context, '/login');
     }

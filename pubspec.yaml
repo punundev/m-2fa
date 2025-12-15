@@ -18,6 +18,7 @@ dependencies:
   url_launcher: ^6.3.2
   otp: ^3.2.0
   flutter_launcher_icons: "^0.13.1"
+  crypto: ^3.0.3
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
