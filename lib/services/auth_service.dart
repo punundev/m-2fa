@@ -4,7 +4,6 @@ import 'package:otp/otp.dart';
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // ================= SIGN UP =================
   Future<User?> signup(String email, String password) async {
     final res = await _supabase.auth.signUp(email: email, password: password);
 
@@ -15,7 +14,6 @@ class AuthService {
     return res.user;
   }
 
-  // ================= LOGIN =================
   Future<User?> login(String email, String password) async {
     final res = await _supabase.auth.signInWithPassword(
       email: email,
@@ -34,7 +32,6 @@ class AuthService {
     return res.user;
   }
 
-  // ================= VERIFY 2FA =================
   Future<void> verify2FA(String code) async {
     final user = _supabase.auth.currentUser;
     if (user == null) {
@@ -56,7 +53,6 @@ class AuthService {
     }
   }
 
-  // ================= OAUTH LOGIN =================
   Future<void> oauthLogin(String provider) async {
     late OAuthProvider oauthProvider;
 
@@ -77,12 +73,10 @@ class AuthService {
     );
   }
 
-  // ================= FORGOT PASSWORD =================
   Future<void> forgotPassword(String email) async {
     await _supabase.auth.resetPasswordForEmail(email);
   }
 
-  // ================= LOGOUT =================
   Future<void> logout() async {
     await _supabase.auth.signOut();
   }

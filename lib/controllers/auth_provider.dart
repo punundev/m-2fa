@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:otp/otp.dart';
+import 'package:auth/models/profile_model.dart';
 
 class AuthProvider extends ChangeNotifier {
   final SupabaseClient supabase = Supabase.instance.client;
@@ -8,10 +9,43 @@ class AuthProvider extends ChangeNotifier {
   User? _user;
   User? get user => _user;
 
+  ProfileModel? _profile;
+  ProfileModel? get profile => _profile;
+
   bool is2FARequired = false;
   String? currentUserId;
 
-  // ================= LOGIN =================
+  Future<void> fetchProfile() async {
+    if (_user == null) return;
+
+    try {
+      final response = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url, hashed_pin')
+          .eq('id', _user!.id)
+          .single();
+
+      if (response.isNotEmpty) {
+        _profile = ProfileModel.fromJson(response);
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error fetching profile: $e');
+      _profile = null;
+      notifyListeners();
+    }
+  }
+
+  @override
+  Future<void> reloadUser() async {
+    final session = supabase.auth.currentSession;
+    if (session != null) {
+      _user = session.user;
+      await fetchProfile();
+      notifyListeners();
+    }
+  }
+
   Future<void> login(String email, String password) async {
     final res = await supabase.auth.signInWithPassword(
       email: email,
@@ -26,10 +60,10 @@ class AuthProvider extends ChangeNotifier {
     currentUserId = res.user!.id;
     is2FARequired = res.user!.appMetadata['2fa_enabled'] == true;
 
+    await fetchProfile();
     notifyListeners();
   }
 
-  // ================= SIGN UP =================
   Future<void> signup(String email, String password) async {
     final res = await supabase.auth.signUp(email: email, password: password);
 
@@ -40,10 +74,10 @@ class AuthProvider extends ChangeNotifier {
     _user = res.user;
     currentUserId = res.user!.id;
 
+    await fetchProfile();
     notifyListeners();
   }
 
-  // ================= OAUTH LOGIN =================
   Future<void> oauthLogin(String provider) async {
     late OAuthProvider oauthProvider;
 
@@ -69,10 +103,10 @@ class AuthProvider extends ChangeNotifier {
     currentUserId = user.id;
     is2FARequired = user.appMetadata['2fa_enabled'] == true;
 
+    await fetchProfile();
     notifyListeners();
   }
 
-  // ================= VERIFY 2FA =================
   Future<void> verify2FA(String code) async {
     final user = supabase.auth.currentUser;
     if (user == null) {
@@ -97,16 +131,15 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ================= FORGOT PASSWORD =================
   Future<void> forgotPassword(String email) async {
     await supabase.auth.resetPasswordForEmail(email);
   }
 
-  // ================= LOGOUT =================
   Future<void> logout() async {
     await supabase.auth.signOut();
 
     _user = null;
+    _profile = null;
     currentUserId = null;
     is2FARequired = false;
 

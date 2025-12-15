@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:auth/controllers/auth_provider.dart';
+import 'package:auth/services/profile_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -12,17 +15,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _avatarUrlController = TextEditingController();
   bool _loading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+
+    _nameController.text = user?.userMetadata?['name'] ?? '';
+    _avatarUrlController.text = user?.userMetadata?['avatar_url'] ?? '';
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _avatarUrlController.dispose();
+    super.dispose();
+  }
+
   Future<void> _handleSaveProfile() async {
     setState(() => _loading = true);
 
-    await Future.delayed(const Duration(seconds: 1));
-
-    setState(() => _loading = false);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile saved successfully!')),
+    try {
+      await ProfileService.updateProfile(
+        fullName: _nameController.text.trim(),
+        avatarUrl: _avatarUrlController.text.trim(),
       );
-      Navigator.pop(context);
+
+      if (mounted) {
+        Provider.of<AuthProvider>(context, listen: false).reloadUser();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile saved successfully and synced!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save profile: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -50,7 +90,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             TextField(
               controller: _nameController,
               decoration: _inputDecoration(
-                'Display Name',
+                'Display Name (Full Name)',
                 Icons.person_outline,
                 primaryColor,
               ),
