@@ -1,159 +1,211 @@
-import 'package:auth/controllers/auth_provider.dart';
-import 'package:auth/screens/auth/login_screen.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:auth/controllers/auth_provider.dart';
+import 'package:auth/controllers/authenticator_provider.dart';
+import 'package:auth/models/authenticator_model.dart';
+import 'package:otp/otp.dart';
 
 const String _appName = 'Nun Auth';
-const String _logoAssetPath = 'assets/images/fingerprint.png';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _simulateAddAccount(BuildContext context) {
+    final secretKey = OTP.randomSecret();
+
+    context.read<AuthenticatorProvider>().addAccount(
+      serviceName: 'GitHub',
+      email: 'user_github@example.com',
+      secret: secretKey,
+    );
+
+    context.read<AuthenticatorProvider>().addAccount(
+      serviceName: 'My Bank App',
+      email: 'user_bank@example.com',
+      secret: OTP.randomSecret(),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Simulated GitHub and Bank accounts added!'),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-    final user = auth.user;
+    final authProvider = context.watch<AuthProvider>();
+    final authenticatorProvider = context.watch<AuthenticatorProvider>();
+    final accounts = authenticatorProvider.accounts;
     final primaryColor = Theme.of(context).primaryColor;
 
-    final welcomeMessage = user?.email ?? 'User data not available';
-
-    String userInitials = 'NA';
-    if (user?.email != null) {
-      userInitials = user!.email!.isNotEmpty
-          ? user.email![0].toUpperCase()
-          : 'NA';
-    }
+    final currentSecond = (DateTime.now().millisecondsSinceEpoch / 1000)
+        .floor();
+    final secondsRemaining = 30 - (currentSecond % 30);
+    final progressValue = secondsRemaining / 30;
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 150.0,
-            backgroundColor: primaryColor,
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: Text(
-                _appName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              centerTitle: false,
-              background: Container(color: primaryColor),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.logout, color: Colors.white),
-                tooltip: 'Logout',
-                onPressed: () async {
-                  await auth.logout();
-                  if (!context.mounted) return;
-                  Navigator.of(context).pushReplacementNamed('/login');
-                },
-              ),
-              const SizedBox(width: 8),
-            ],
+      appBar: AppBar(
+        title: const Text(
+          _appName,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            tooltip: 'Account Settings',
+            onPressed: () => Navigator.of(context).pushNamed('/profile'),
           ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () async {
+              await authProvider.logout();
+              if (!context.mounted) return;
+              Navigator.of(context).pushReplacementNamed('/login');
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
 
-          SliverList(
-            delegate: SliverChildListDelegate([
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Card(
-                      elevation: 5,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 30,
-                              backgroundColor: primaryColor.withOpacity(0.15),
-                              child: Text(
-                                userInitials,
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: primaryColor,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Welcome back,',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  Text(
-                                    welcomeMessage,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
-
-                    Text(
-                      'Your Authentication Data',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-
-                    ListTile(
-                      leading: Icon(Icons.security, color: primaryColor),
-                      title: const Text('2-Factor Authentication'),
-                      subtitle: const Text(
-                        'Manage your 2FA settings and recovery codes.',
-                      ),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                      onTap: () {},
-                    ),
-                    Divider(indent: 20, endIndent: 20),
-                    ListTile(
-                      leading: Icon(Icons.password, color: primaryColor),
-                      title: const Text('Change Password'),
-                      subtitle: const Text(
-                        'Update your current login password.',
-                      ),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                      onTap: () {},
-                    ),
-                  ],
-                ),
+      body: accounts.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.qr_code_scanner,
+                    size: 80,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'No Authenticator Accounts Added',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Tap the "+" button to scan a 2FA QR code.',
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  ),
+                ],
               ),
-            ]),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.only(top: 10, bottom: 80),
+              itemCount: accounts.length,
+              itemBuilder: (context, index) {
+                final account = accounts[index];
+                final code = authenticatorProvider.generateCode(account.secret);
+
+                return _buildAccountTile(
+                  context,
+                  account: account,
+                  code: code,
+                  primaryColor: primaryColor,
+                  progressValue: progressValue,
+                  secondsRemaining: secondsRemaining,
+                );
+              },
+            ),
+
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          _simulateAddAccount(context);
+        },
+        icon: const Icon(Icons.add_a_photo),
+        label: const Text('Add Account'),
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildAccountTile(
+    BuildContext context, {
+    required AuthenticatorAccount account,
+    required String code,
+    required Color primaryColor,
+    required double progressValue,
+    required int secondsRemaining,
+  }) {
+    return ListTile(
+      onTap: () {
+        Clipboard.setData(ClipboardData(text: code));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Code $code copied for ${account.serviceName}'),
+          ),
+        );
+      },
+      leading: CircleAvatar(
+        backgroundColor: primaryColor.withOpacity(0.1),
+        child: Text(
+          account.serviceName[0].toUpperCase(),
+          style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
+        ),
+      ),
+      title: Text(
+        account.serviceName,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      ),
+      subtitle: Text(
+        account.email,
+        style: TextStyle(color: Colors.grey.shade600),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            code,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 2,
+            ),
+          ),
+          const SizedBox(width: 15),
+          SizedBox(
+            height: 24,
+            width: 24,
+            child: CircularProgressIndicator(
+              value: progressValue,
+              strokeWidth: 3,
+              color: secondsRemaining < 5 ? Colors.red : primaryColor,
+              backgroundColor: primaryColor.withOpacity(0.2),
+            ),
           ),
         ],
       ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
     );
   }
 }

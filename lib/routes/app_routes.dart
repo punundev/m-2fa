@@ -5,6 +5,7 @@ import 'package:auth/screens/auth/signup_screen.dart';
 import 'package:auth/screens/home/change_password_screen.dart';
 import 'package:auth/screens/home/change_pin_screen.dart';
 import 'package:auth/screens/home/edit_profile_screen.dart';
+import 'package:auth/screens/security/register_2fa_screen.dart';
 import 'package:auth/screens/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:auth/screens/main_wrapper.dart';
@@ -19,4 +20,5 @@ final Map<String, WidgetBuilder> appRoutes = {
   '/change-password': (_) => const ChangePasswordScreen(),
   '/change-pin': (_) => const ChangePinScreen(),
   '/edit-profile': (_) => const EditProfileScreen(),
+  '/register-2fa': (context) => const Register2FAScreen(),
 };
