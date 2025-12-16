@@ -55,6 +55,24 @@ class _HomeScreenState extends State<HomeScreen> {
       return 'assets/images/github.png';
     } else if (lowerCaseName.contains('google')) {
       return 'assets/images/google.png';
+    } else if (lowerCaseName.contains('brevo')) {
+      return 'assets/images/brevo.png';
+    } else if (lowerCaseName.contains('netify')) {
+      return 'assets/images/netify.png';
+    } else if (lowerCaseName.contains('vercel')) {
+      return 'assets/images/vercel.png';
+    } else if (lowerCaseName.contains('supabase')) {
+      return 'assets/images/supabase.png';
+    } else if (lowerCaseName.contains('firebase')) {
+      return 'assets/images/firebase.png';
+    } else if (lowerCaseName.contains('facebook')) {
+      return 'assets/images/facebook.png';
+    } else if (lowerCaseName.contains('hostinger') ||
+        lowerCaseName.contains('namecheap')) {
+      return 'assets/images/domain.png';
+    } else if (lowerCaseName.contains('contabo') ||
+        lowerCaseName.contains('interser')) {
+      return 'assets/images/server.png';
     }
     return null;
   }
