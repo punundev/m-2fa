@@ -12,27 +12,52 @@ void main() async {
 
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
 
+  final authProvider = AuthProvider();
+  await authProvider.fetchProfile();
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
+        ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
 
         ChangeNotifierProvider<AuthenticatorProvider>(
           create: (_) => AuthenticatorProvider(),
         ),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
+    const Color primaryAppColor = Color(0xFF0D47A1);
+
     return MaterialApp(
-      title: 'Auth App',
+      title: 'Nun Auth',
       initialRoute: '/splash',
       debugShowCheckedModeBanner: false,
+
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: primaryAppColor,
+          primary: primaryAppColor,
+          secondary: primaryAppColor,
+        ),
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          surfaceTintColor: Colors.transparent,
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: primaryAppColor,
+          foregroundColor: Colors.white,
+        ),
+      ),
+
       routes: appRoutes,
     );
   }

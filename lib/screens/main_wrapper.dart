@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:auth/widgets/app_drawer.dart';
 import 'package:auth/screens/home/home_screen.dart';
 import 'package:auth/screens/home/profile_screen.dart';
 
@@ -11,6 +12,8 @@ class MainWrapper extends StatefulWidget {
 
 class _MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   static const List<Widget> _screens = <Widget>[HomeScreen(), ProfileScreen()];
 
@@ -25,7 +28,10 @@ class _MainWrapperState extends State<MainWrapper> {
     final primaryColor = Theme.of(context).primaryColor;
 
     return Scaffold(
+      key: _scaffoldKey,
       body: IndexedStack(index: _selectedIndex, children: _screens),
+
+      drawer: AppDrawer(primaryColor: primaryColor, onNavigate: _onItemTapped),
 
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[

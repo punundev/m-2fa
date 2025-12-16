@@ -53,16 +53,36 @@ class AuthenticatorProvider extends ChangeNotifier {
       'secret': secret,
     };
 
-    final response = await supabase
-        .from('totp_secrets')
-        .insert(newAccountData)
-        .select()
-        .single();
+    try {
+      final response = await supabase
+          .from('totp_secrets')
+          .insert(newAccountData)
+          .select()
+          .single();
 
-    final newAccount = AuthenticatorAccount.fromMap(response);
-    _accounts.add(newAccount);
+      final newAccount = AuthenticatorAccount.fromMap(response);
+      _accounts.add(newAccount);
+    } catch (e) {
+      debugPrint('Error adding TOTP account: $e');
+      rethrow;
+    }
 
     notifyListeners();
+  }
+
+  Future<void> deleteAccount(String accountIdString) async {
+    final int accountIdInt = int.tryParse(accountIdString) ?? -1;
+
+    try {
+      await supabase.from('totp_secrets').delete().eq('id', accountIdString);
+
+      _accounts.removeWhere((account) => account.id == accountIdInt);
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error deleting TOTP account with ID $accountIdString: $e');
+      rethrow;
+    }
   }
 
   String generateCode(String secret) {
