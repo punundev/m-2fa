@@ -66,11 +66,11 @@ class SettingsScreen extends StatelessWidget {
                       }
                     },
                     items: const [
+                      DropdownMenuItem(value: 'km', child: Text('ភាសាខ្មែរ')),
                       DropdownMenuItem(value: 'en', child: Text('English')),
-                      DropdownMenuItem(
-                        value: 'km',
-                        child: Text('ភាសាខ្មែរ (Khmer)'),
-                      ),
+                      DropdownMenuItem(value: 'zh', child: Text('中文')),
+                      DropdownMenuItem(value: 'ja', child: Text('日本語')),
+                      DropdownMenuItem(value: 'ru', child: Text('Русский')),
                     ],
                   ),
                 ),
