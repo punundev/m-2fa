@@ -1,3 +1,4 @@
+import 'package:auth/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:auth/controllers/auth_provider.dart';
@@ -21,6 +22,8 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.read<AuthProvider>();
+
+    final T = AppLocalizations.of(context)!;
 
     final user = authProvider.user;
     final profile = authProvider.profile;
@@ -69,7 +72,7 @@ class AppDrawer extends StatelessWidget {
 
           ListTile(
             leading: const Icon(Icons.home_outlined),
-            title: const Text('Home'),
+            title: Text(T.homeTitle),
             onTap: () {
               Navigator.pop(context);
               onNavigate(0);
@@ -77,27 +80,26 @@ class AppDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.person_outline),
-            title: const Text('Profile'),
+            title: Text(T.profileTitle),
             onTap: () {
               Navigator.pop(context);
               onNavigate(1);
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.qr_code_scanner),
-            title: const Text('Scan New Account'),
-            onTap: () => _navigateToRoute(context, '/qr-scanner'),
-          ),
+
           ListTile(
             leading: const Icon(Icons.settings_outlined),
-            title: const Text('Settings'),
+            title: Text(T.settingsTitle),
             onTap: () => _navigateToRoute(context, '/settings'),
           ),
           const Divider(),
 
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('Logout', style: TextStyle(color: Colors.red)),
+            title: Text(
+              T.logoutTitle,
+              style: const TextStyle(color: Colors.red),
+            ),
             onTap: () async {
               Navigator.pop(context);
 

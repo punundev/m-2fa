@@ -1,0 +1,50 @@
+{
+  "@@locale": "km",
+
+  "appName": "Nun ការផ្ទៀងផ្ទាត់",
+  "homeTitle": "ទំព័រដើម",
+  "profileTitle": "ប្រវត្តិរូប",
+  "settingsTitle": "ការកំណត់",
+  "logoutTitle": "ចាកចេញ",
+
+  "userNameDefault": "ឈ្មោះអ្នកប្រើ",
+  "emailDefault": "មិនមានអ៊ីមែល",
+  "editProfile": "កែប្រែប្រវត្តិរូប",
+  "securityAccount": "សុវត្ថិភាព និង គណនី",
+  "changePin": "ផ្លាស់ប្តូរ PIN",
+  "changePinSubtitle": "ធ្វើបច្ចុប្បន្នភាព PIN ចូលរហ័ស ៤ ខ្ទង់។",
+  "changePassword": "ផ្លាស់ប្តូរពាក្យសម្ងាត់",
+
+  "editProfileTitle": "កែប្រែប្រវត្តិរូប",
+  "displayNameLabel": "ឈ្មោះបង្ហាញ (ឈ្មោះពេញ)",
+  "saveProfile": "រក្សាទុកប្រវត្តិរូប",
+  "uploadingAvatar": "កំពុងផ្ទុករូបតំណាង...",
+  "profileSaveSuccess": "បានរក្សាទុក និង ធ្វើសមកាលកម្មប្រវត្តិរូបដោយជោគជ័យ!",
+  "profileSaveFailed": "មិនអាចរក្សាទុកប្រវត្តិរូបបាន៖ ",
+
+  "changePasswordTitle": "ផ្លាស់ប្តូរពាក្យសម្ងាត់",
+  "updateCredentialsText": "ធ្វើបច្ចុប្បន្នភាពព័ត៌មានចូលប្រើប្រាស់។",
+  "currentPasswordLabel": "ពាក្យសម្ងាត់បច្ចុប្បន្ន",
+  "newPasswordLabel": "ពាក្យសម្ងាត់ថ្មី",
+  "confirmNewPasswordLabel": "បញ្ជាក់ពាក្យសម្ងាត់ថ្មី",
+
+  "enterCurrentPassword": "សូមបញ្ចូលពាក្យសម្ងាត់បច្ចុប្បន្ន។",
+  "enterNewPassword": "សូមបញ្ចូលពាក្យសម្ងាត់ថ្មី។",
+  "confirmNewPassword": "សូមបញ្ជាក់ពាក្យសម្ងាត់ថ្មី។",
+  "passwordsDoNotMatch": "ពាក្យសម្ងាត់មិនត្រូវគ្នា។",
+  "passwordMismatch": "ពាក្យសម្ងាត់ថ្មីមិនត្រូវគ្នា។",
+
+  "saveNewPassword": "រក្សាទុកពាក្យសម្ងាត់ថ្មី",
+  "passwordUpdateSuccess": "បានធ្វើបច្ចុប្បន្នភាពពាក្យសម្ងាត់ដោយជោគជ័យ!",
+  "userEmailNotFound": "រកមិនឃើញអ៊ីមែលអ្នកប្រើ។ សូមចូលប្រើឡើងវិញ។",
+  "invalidCurrentPassword": "ពាក្យសម្ងាត់បច្ចុប្បន្នមិនត្រឹមត្រូវ។",
+  "updatePasswordFailed": "មិនអាចធ្វើបច្ចុប្បន្នភាពពាក្យសម្ងាត់បាន។",
+
+  "themeMode": "របៀបពន្លឺ",
+  "lightMode": "ពន្លឺថ្ងៃ",
+  "darkMode": "ពន្លឺងងឹត",
+  "systemMode": "តាមប្រព័ន្ធ",
+  "primaryColor": "ពណ៌ចម្បងកម្មវិធី",
+  "language": "ភាសា",
+  "languageName": "ភាសាខ្មែរ"
+}

@@ -1,0 +1,50 @@
+{
+  "@@locale": "en",
+  
+  "appName": "Nun Auth",
+  "homeTitle": "Home",
+  "profileTitle": "Profile",
+  "settingsTitle": "Settings",
+  "logoutTitle": "Logout",
+  
+  "userNameDefault": "User Name",
+  "emailDefault": "No email available",
+  "editProfile": "Edit Profile",
+  "securityAccount": "Security & Account",
+  "changePin": "Change PIN Code",
+  "changePinSubtitle": "Update your quick access 4-digit PIN.",
+  "changePassword": "Change Password",
+  
+  "editProfileTitle": "Edit Profile",
+  "displayNameLabel": "Display Name (Full Name)",
+  "saveProfile": "Save Profile",
+  "uploadingAvatar": "Uploading avatar...",
+  "profileSaveSuccess": "Profile saved successfully and synced!",
+  "profileSaveFailed": "Failed to save profile: ",
+  
+  "changePasswordTitle": "Change Password",
+  "updateCredentialsText": "Update your login credentials.",
+  "currentPasswordLabel": "Current Password",
+  "newPasswordLabel": "New Password",
+  "confirmNewPasswordLabel": "Confirm New Password",
+  
+  "enterCurrentPassword": "Enter your current password.",
+  "enterNewPassword": "Enter a new password.",
+  "confirmNewPassword": "Confirm your new password.",
+  "passwordsDoNotMatch": "Passwords do not match.",
+  "passwordMismatch": "New passwords do not match.",
+  
+  "saveNewPassword": "Save New Password",
+  "passwordUpdateSuccess": "Password updated successfully!",
+  "userEmailNotFound": "User email not found. Please re-login.",
+  "invalidCurrentPassword": "Invalid current password.",
+  "updatePasswordFailed": "Failed to update password.",
+  
+  "themeMode": "Theme Mode",
+  "lightMode": "Light Mode",
+  "darkMode": "Dark Mode",
+  "systemMode": "System Default",
+  "primaryColor": "Primary App Color",
+  "language": "Language",
+  "languageName": "English"
+}

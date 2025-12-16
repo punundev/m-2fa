@@ -1,6 +1,9 @@
+import 'package:auth/controllers/controllers/settings_provider.dart';
+import 'package:auth/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/constants.dart';
 import 'routes/app_routes.dart';
@@ -15,6 +18,8 @@ void main() async {
   final authProvider = AuthProvider();
   await authProvider.fetchProfile();
 
+  final settingsProvider = SettingsProvider();
+
   runApp(
     MultiProvider(
       providers: [
@@ -23,6 +28,7 @@ void main() async {
         ChangeNotifierProvider<AuthenticatorProvider>(
           create: (_) => AuthenticatorProvider(),
         ),
+        ChangeNotifierProvider<SettingsProvider>.value(value: settingsProvider),
       ],
       child: const MyApp(),
     ),
@@ -34,29 +40,62 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryAppColor = Color(0xFF0D47A1);
+    final settingsProvider = context.watch<SettingsProvider>();
+    final primaryAppColor = settingsProvider.primaryColor;
 
     return MaterialApp(
       title: 'Nun Auth',
       initialRoute: '/splash',
       debugShowCheckedModeBanner: false,
 
+      themeMode: settingsProvider.themeMode,
+
       theme: ThemeData(
         useMaterial3: true,
+        brightness: Brightness.light,
+        fontFamily: 'KantumruyPro',
         colorScheme: ColorScheme.fromSeed(
           seedColor: primaryAppColor,
           primary: primaryAppColor,
-          secondary: primaryAppColor,
+          brightness: Brightness.light,
         ),
         appBarTheme: const AppBarTheme(
           centerTitle: true,
           surfaceTintColor: Colors.transparent,
         ),
-        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: primaryAppColor,
           foregroundColor: Colors.white,
         ),
       ),
+
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        fontFamily: 'KantumruyPro',
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: primaryAppColor,
+          primary: primaryAppColor,
+          brightness: Brightness.dark,
+        ),
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          surfaceTintColor: Colors.transparent,
+        ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: primaryAppColor,
+          foregroundColor: Colors.white,
+        ),
+      ),
+
+      locale: settingsProvider.locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
 
       routes: appRoutes,
     );

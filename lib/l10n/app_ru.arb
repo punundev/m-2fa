@@ -1,0 +1,50 @@
+{
+  "@@locale": "ru",
+
+  "appName": "Nun Аутентификация",
+  "homeTitle": "Главная",
+  "profileTitle": "Профиль",
+  "settingsTitle": "Настройки",
+  "logoutTitle": "Выйти",
+
+  "userNameDefault": "Имя пользователя",
+  "emailDefault": "Электронная почта недоступна",
+  "editProfile": "Редактировать профиль",
+  "securityAccount": "Безопасность и аккаунт",
+  "changePin": "Изменить PIN-код",
+  "changePinSubtitle": "Обновите 4-значный PIN для быстрого доступа.",
+  "changePassword": "Сменить пароль",
+
+  "editProfileTitle": "Редактировать профиль",
+  "displayNameLabel": "Отображаемое имя (полное имя)",
+  "saveProfile": "Сохранить профиль",
+  "uploadingAvatar": "Загрузка аватара...",
+  "profileSaveSuccess": "Профиль успешно сохранён и синхронизирован!",
+  "profileSaveFailed": "Не удалось сохранить профиль: ",
+
+  "changePasswordTitle": "Смена пароля",
+  "updateCredentialsText": "Обновите данные для входа.",
+  "currentPasswordLabel": "Текущий пароль",
+  "newPasswordLabel": "Новый пароль",
+  "confirmNewPasswordLabel": "Подтвердите новый пароль",
+
+  "enterCurrentPassword": "Введите текущий пароль.",
+  "enterNewPassword": "Введите новый пароль.",
+  "confirmNewPassword": "Подтвердите новый пароль.",
+  "passwordsDoNotMatch": "Пароли не совпадают.",
+  "passwordMismatch": "Новые пароли не совпадают.",
+
+  "saveNewPassword": "Сохранить новый пароль",
+  "passwordUpdateSuccess": "Пароль успешно обновлён!",
+  "userEmailNotFound": "Email пользователя не найден. Пожалуйста, войдите снова.",
+  "invalidCurrentPassword": "Неверный текущий пароль.",
+  "updatePasswordFailed": "Не удалось обновить пароль.",
+
+  "themeMode": "Режим темы",
+  "lightMode": "Светлая тема",
+  "darkMode": "Тёмная тема",
+  "systemMode": "Системная",
+  "primaryColor": "Основной цвет приложения",
+  "language": "Язык",
+  "languageName": "Русский"
+}

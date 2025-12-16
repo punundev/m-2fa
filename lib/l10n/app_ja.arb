@@ -1,0 +1,50 @@
+{
+  "@@locale": "ja",
+
+  "appName": "Nun 認証",
+  "homeTitle": "ホーム",
+  "profileTitle": "プロフィール",
+  "settingsTitle": "設定",
+  "logoutTitle": "ログアウト",
+
+  "userNameDefault": "ユーザー名",
+  "emailDefault": "メールアドレスがありません",
+  "editProfile": "プロフィール編集",
+  "securityAccount": "セキュリティとアカウント",
+  "changePin": "PINコード変更",
+  "changePinSubtitle": "4桁のクイックアクセス PIN を更新します。",
+  "changePassword": "パスワード変更",
+
+  "editProfileTitle": "プロフィール編集",
+  "displayNameLabel": "表示名（フルネーム）",
+  "saveProfile": "保存",
+  "uploadingAvatar": "アバターをアップロード中...",
+  "profileSaveSuccess": "プロフィールが正常に保存・同期されました！",
+  "profileSaveFailed": "プロフィールの保存に失敗しました：",
+
+  "changePasswordTitle": "パスワード変更",
+  "updateCredentialsText": "ログイン情報を更新します。",
+  "currentPasswordLabel": "現在のパスワード",
+  "newPasswordLabel": "新しいパスワード",
+  "confirmNewPasswordLabel": "新しいパスワード確認",
+
+  "enterCurrentPassword": "現在のパスワードを入力してください。",
+  "enterNewPassword": "新しいパスワードを入力してください。",
+  "confirmNewPassword": "新しいパスワードを確認してください。",
+  "passwordsDoNotMatch": "パスワードが一致しません。",
+  "passwordMismatch": "新しいパスワードが一致しません。",
+
+  "saveNewPassword": "新しいパスワードを保存",
+  "passwordUpdateSuccess": "パスワードが正常に更新されました！",
+  "userEmailNotFound": "ユーザーのメールが見つかりません。再ログインしてください。",
+  "invalidCurrentPassword": "現在のパスワードが正しくありません。",
+  "updatePasswordFailed": "パスワードの更新に失敗しました。",
+
+  "themeMode": "テーマモード",
+  "lightMode": "ライトモード",
+  "darkMode": "ダークモード",
+  "systemMode": "システムに従う",
+  "primaryColor": "アプリのメインカラー",
+  "language": "言語",
+  "languageName": "日本語"
+}

@@ -1,5 +1,6 @@
 import 'package:auth/controllers/auth_provider.dart';
 import 'package:auth/core/secure_storage.dart';
+import 'package:auth/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,6 +17,9 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
+
+    final T = AppLocalizations.of(context)!;
+
     final user = authProvider.user;
     final profile = authProvider.profile;
     final primaryColor = Theme.of(context).primaryColor;
@@ -24,10 +28,12 @@ class ProfileScreen extends StatelessWidget {
       future: _loadProfile(context),
       builder: (context, snapshot) {
         final userName =
-            profile?.fullName ?? user?.userMetadata?['name'] ?? 'User Name';
+            profile?.fullName ??
+            user?.userMetadata?['name'] ??
+            T.userNameDefault;
         final avatarUrl =
             profile?.avatarUrl ?? user?.userMetadata?['avatar_url'];
-        final email = user?.email ?? 'No email available';
+        final email = user?.email ?? T.emailDefault;
 
         String userInitials = userName.isNotEmpty
             ? userName[0].toUpperCase()
@@ -41,10 +47,21 @@ class ProfileScreen extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Profile'),
+            title: Text(
+              T.appName,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
             backgroundColor: primaryColor,
             foregroundColor: Colors.white,
             elevation: 0,
+            actions: const [],
+            leading: IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            ),
+            automaticallyImplyLeading: false,
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -92,7 +109,7 @@ class ProfileScreen extends StatelessWidget {
 
                       OutlinedButton.icon(
                         icon: const Icon(Icons.edit_outlined),
-                        label: const Text('Edit Profile'),
+                        label: Text(T.editProfile),
                         onPressed: () {
                           Navigator.of(context).pushNamed('/edit-profile');
                         },
@@ -114,7 +131,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
 
                 Text(
-                  'Security & Account',
+                  T.securityAccount,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -125,8 +142,8 @@ class ProfileScreen extends StatelessWidget {
 
                 ListTile(
                   leading: Icon(Icons.vpn_key_outlined, color: primaryColor),
-                  title: const Text('Change PIN Code'),
-                  subtitle: const Text('Update your quick access 4-digit PIN.'),
+                  title: Text(T.changePin),
+                  subtitle: Text(T.changePinSubtitle),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
                     Navigator.of(context).pushNamed('/change-pin');
@@ -136,7 +153,7 @@ class ProfileScreen extends StatelessWidget {
 
                 ListTile(
                   leading: Icon(Icons.lock_reset_outlined, color: primaryColor),
-                  title: const Text('Change Password'),
+                  title: Text(T.changePassword),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
                     Navigator.of(context).pushNamed('/change-password');
@@ -148,9 +165,9 @@ class ProfileScreen extends StatelessWidget {
 
                 ElevatedButton.icon(
                   icon: const Icon(Icons.logout, color: Colors.white),
-                  label: const Text(
-                    'Logout',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  label: Text(
+                    T.logoutTitle,
+                    style: const TextStyle(fontSize: 18, color: Colors.white),
                   ),
                   onPressed: () async {
                     await authProvider.logout();

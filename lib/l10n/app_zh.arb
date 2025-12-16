@@ -1,0 +1,50 @@
+{
+  "@@locale": "zh",
+
+  "appName": "Nun 认证",
+  "homeTitle": "首页",
+  "profileTitle": "个人资料",
+  "settingsTitle": "设置",
+  "logoutTitle": "退出登录",
+
+  "userNameDefault": "用户名",
+  "emailDefault": "暂无邮箱",
+  "editProfile": "编辑个人资料",
+  "securityAccount": "安全与账户",
+  "changePin": "更改 PIN 码",
+  "changePinSubtitle": "更新您的 4 位快速访问 PIN。",
+  "changePassword": "更改密码",
+
+  "editProfileTitle": "编辑个人资料",
+  "displayNameLabel": "显示名称（全名）",
+  "saveProfile": "保存资料",
+  "uploadingAvatar": "正在上传头像...",
+  "profileSaveSuccess": "资料已成功保存并同步！",
+  "profileSaveFailed": "保存资料失败：",
+
+  "changePasswordTitle": "更改密码",
+  "updateCredentialsText": "更新您的登录凭据。",
+  "currentPasswordLabel": "当前密码",
+  "newPasswordLabel": "新密码",
+  "confirmNewPasswordLabel": "确认新密码",
+
+  "enterCurrentPassword": "请输入当前密码。",
+  "enterNewPassword": "请输入新密码。",
+  "confirmNewPassword": "请确认新密码。",
+  "passwordsDoNotMatch": "密码不一致。",
+  "passwordMismatch": "新密码不匹配。",
+
+  "saveNewPassword": "保存新密码",
+  "passwordUpdateSuccess": "密码更新成功！",
+  "userEmailNotFound": "未找到用户邮箱，请重新登录。",
+  "invalidCurrentPassword": "当前密码无效。",
+  "updatePasswordFailed": "更新密码失败。",
+
+  "themeMode": "主题模式",
+  "lightMode": "浅色模式",
+  "darkMode": "深色模式",
+  "systemMode": "跟随系统",
+  "primaryColor": "应用主色",
+  "language": "语言",
+  "languageName": "简体中文"
+}

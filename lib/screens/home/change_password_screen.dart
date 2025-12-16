@@ -1,3 +1,4 @@
+import 'package:auth/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
@@ -57,14 +58,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 
   Future<void> _handleChangePassword() async {
+    final T = AppLocalizations.of(context)!;
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
     if (_newPasswordController.text != _confirmPasswordController.text) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('New passwords do not match.'),
+          SnackBar(
+            content: Text(T.passwordMismatch),
             backgroundColor: Colors.orange,
           ),
         );
@@ -73,7 +76,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     }
 
     setState(() => _loading = true);
-    String errorMessage = 'Failed to update password.';
+    String errorMessage = T.updatePasswordFailed;
 
     try {
       final userEmail = supabase.auth.currentUser?.email;
@@ -81,7 +84,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       final newPassword = _newPasswordController.text.trim();
 
       if (userEmail == null) {
-        throw Exception('User email not found. Please re-login.');
+        throw Exception(T.userEmailNotFound);
       }
 
       final AuthResponse authRes = await supabase.auth.signInWithPassword(
@@ -90,7 +93,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       );
 
       if (authRes.user == null) {
-        throw Exception('Invalid current password.');
+        throw Exception(T.invalidCurrentPassword);
       }
 
       await supabase.auth.updateUser(UserAttributes(password: newPassword));
@@ -99,8 +102,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password updated successfully!'),
+          SnackBar(
+            content: Text(T.passwordUpdateSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -113,7 +116,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     } finally {
       if (mounted) {
         setState(() => _loading = false);
-        if (errorMessage != 'Failed to update password.') {
+        if (errorMessage != T.updatePasswordFailed) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
           );
@@ -124,11 +127,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final T = AppLocalizations.of(context)!;
+
     final primaryColor = Theme.of(context).primaryColor;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Change Password'),
+        title: Text(T.changePasswordTitle),
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
       ),
@@ -140,7 +145,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Text(
-                'Update your login credentials.',
+                T.updateCredentialsText,
                 style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 30),
@@ -149,9 +154,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 controller: _oldPasswordController,
                 obscureText: !_isOldPasswordVisible,
                 validator: (value) =>
-                    value!.isEmpty ? 'Enter your current password.' : null,
+                    value!.isEmpty ? T.enterCurrentPassword : null,
                 decoration: _passwordInputDecoration(
-                  label: 'Current Password',
+                  label: T.currentPasswordLabel,
                   icon: Icons.lock_outline,
                   primaryColor: primaryColor,
                   isObscure: !_isOldPasswordVisible,
@@ -168,9 +173,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 controller: _newPasswordController,
                 obscureText: !_isNewPasswordVisible,
                 validator: (value) =>
-                    value!.isEmpty ? 'Enter a new password.' : null,
+                    value!.isEmpty ? T.enterNewPassword : null,
                 decoration: _passwordInputDecoration(
-                  label: 'New Password',
+                  label: T.newPasswordLabel,
                   icon: Icons.vpn_key_outlined,
                   primaryColor: primaryColor,
                   isObscure: !_isNewPasswordVisible,
@@ -187,13 +192,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 controller: _confirmPasswordController,
                 obscureText: !_isConfirmPasswordVisible,
                 validator: (value) {
-                  if (value!.isEmpty) return 'Confirm your new password.';
+                  if (value!.isEmpty) return T.confirmNewPassword;
                   if (value != _newPasswordController.text)
-                    return 'Passwords do not match.';
+                    return T.passwordsDoNotMatch;
                   return null;
                 },
                 decoration: _passwordInputDecoration(
-                  label: 'Confirm New Password',
+                  label: T.confirmNewPasswordLabel,
                   icon: Icons.check_circle_outline,
                   primaryColor: primaryColor,
                   isObscure: !_isConfirmPasswordVisible,
@@ -220,9 +225,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'Save New Password',
-                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      child: Text(
+                        T.saveNewPassword,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
             ],

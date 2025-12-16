@@ -1,7 +1,11 @@
+import 'dart:io';
+import 'package:auth/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:auth/controllers/auth_provider.dart';
 import 'package:auth/services/profile_service.dart';
+import 'package:auth/services/storage_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -12,8 +16,10 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _nameController = TextEditingController();
-  final _avatarUrlController = TextEditingController();
   bool _loading = false;
+  File? _imageFile;
+
+  String _currentAvatarUrl = '';
 
   @override
   void initState() {
@@ -22,31 +28,53 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final user = authProvider.user;
 
     _nameController.text = user?.userMetadata?['name'] ?? '';
-    _avatarUrlController.text = user?.userMetadata?['avatar_url'] ?? '';
+    _currentAvatarUrl = user?.userMetadata?['avatar_url'] ?? '';
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _avatarUrlController.dispose();
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
   Future<void> _handleSaveProfile() async {
+    final T = AppLocalizations.of(context)!;
+
     setState(() => _loading = true);
+    String? finalAvatarUrl = _currentAvatarUrl;
 
     try {
+      if (_imageFile != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(T.uploadingAvatar)));
+        finalAvatarUrl = await StorageService.uploadAvatar(_imageFile!);
+      }
+
       await ProfileService.updateProfile(
         fullName: _nameController.text.trim(),
-        avatarUrl: _avatarUrlController.text.trim(),
+        avatarUrl: finalAvatarUrl,
       );
 
       if (mounted) {
         Provider.of<AuthProvider>(context, listen: false).reloadUser();
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile saved successfully and synced!'),
+          SnackBar(
+            content: Text(T.profileSaveSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -56,7 +84,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save profile: ${e.toString()}'),
+            content: Text('${T.profileSaveFailed}${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -68,11 +96,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final T = AppLocalizations.of(context)!;
+
     final primaryColor = Theme.of(context).primaryColor;
+    final displayImage = _imageFile != null
+        ? FileImage(_imageFile!) as ImageProvider
+        : (_currentAvatarUrl.isNotEmpty
+              ? NetworkImage(_currentAvatarUrl) as ImageProvider
+              : null);
+
+    final String initialName = _nameController.text.isNotEmpty
+        ? _nameController.text[0].toUpperCase()
+        : '?';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: Text(T.editProfileTitle),
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
       ),
@@ -81,31 +120,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Text(
-              'Manage your display name and profile picture.',
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+            Center(
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundColor: primaryColor.withOpacity(0.15),
+                    backgroundImage: displayImage,
+                    child: displayImage == null
+                        ? Text(
+                            initialName,
+                            style: TextStyle(
+                              fontSize: 40,
+                              fontWeight: FontWeight.bold,
+                              color: primaryColor,
+                            ),
+                          )
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: CircleAvatar(
+                      backgroundColor: primaryColor,
+                      radius: 20,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.camera_alt,
+                          size: 20,
+                          color: Colors.white,
+                        ),
+                        onPressed: _pickImage,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 30),
 
             TextField(
               controller: _nameController,
               decoration: _inputDecoration(
-                'Display Name (Full Name)',
+                T.displayNameLabel,
                 Icons.person_outline,
                 primaryColor,
               ),
             ),
             const SizedBox(height: 16),
-
-            TextField(
-              controller: _avatarUrlController,
-              keyboardType: TextInputType.url,
-              decoration: _inputDecoration(
-                'Profile Photo URL',
-                Icons.photo_camera_outlined,
-                primaryColor,
-              ),
-            ),
 
             const SizedBox(height: 40),
 
@@ -120,9 +182,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Save Profile',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    child: Text(
+                      T.saveProfile,
+                      style: const TextStyle(fontSize: 18, color: Colors.white),
                     ),
                   ),
           ],
