@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
-        fontFamily: 'KantumruyPro',
+        fontFamily: 'Poppins-Regular',
         colorScheme: ColorScheme.fromSeed(
           seedColor: primaryAppColor,
           primary: primaryAppColor,
@@ -72,7 +72,7 @@ class MyApp extends StatelessWidget {
       darkTheme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        fontFamily: 'KantumruyPro',
+        fontFamily: 'Poppins-Regular',
         colorScheme: ColorScheme.fromSeed(
           seedColor: primaryAppColor,
           primary: primaryAppColor,

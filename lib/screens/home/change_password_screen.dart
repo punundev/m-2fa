@@ -193,8 +193,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 obscureText: !_isConfirmPasswordVisible,
                 validator: (value) {
                   if (value!.isEmpty) return T.confirmNewPassword;
-                  if (value != _newPasswordController.text)
+                  if (value != _newPasswordController.text) {
                     return T.passwordsDoNotMatch;
+                  }
                   return null;
                 },
                 decoration: _passwordInputDecoration(

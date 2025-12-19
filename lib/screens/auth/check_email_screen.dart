@@ -12,9 +12,7 @@ class CheckEmailScreen extends StatelessWidget {
     final domainPart = parts[1];
 
     String maskedLocal = localPart.length > 4
-        ? localPart.substring(0, 3) +
-              '****' +
-              localPart.substring(localPart.length - 1)
+        ? '${localPart.substring(0, 3)}****${localPart.substring(localPart.length - 1)}'
         : localPart;
 
     return '$maskedLocal@$domainPart';

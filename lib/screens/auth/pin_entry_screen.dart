@@ -208,10 +208,11 @@ class _PinEntryScreenState extends State<PinEntryScreen> {
                         TextButton(
                           onPressed: () async {
                             await Supabase.instance.client.auth.signOut();
-                            if (mounted)
+                            if (mounted) {
                               Navigator.of(
                                 context,
                               ).pushReplacementNamed('/login');
+                            }
                           },
                           child: const Text('Log Out / Use different account'),
                         ),

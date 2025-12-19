@@ -149,8 +149,9 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                   toggleVisibility: () => _toggleVisibility(true),
                 ),
                 validator: (value) {
-                  if (value!.isEmpty)
+                  if (value!.isEmpty) {
                     return 'Please enter your current password for verification.';
+                  }
                   return null;
                 },
               ),
@@ -171,8 +172,9 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                   toggleVisibility: () => _toggleVisibility(false),
                 ),
                 validator: (value) {
-                  if (value!.length != 4)
+                  if (value!.length != 4) {
                     return 'PIN must be exactly 4 digits.';
+                  }
                   return null;
                 },
               ),
@@ -191,8 +193,9 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                   toggleVisibility: () => _toggleVisibility(false),
                 ),
                 validator: (value) {
-                  if (value != _newPinController.text)
+                  if (value != _newPinController.text) {
                     return 'PINs do not match.';
+                  }
                   return null;
                 },
               ),

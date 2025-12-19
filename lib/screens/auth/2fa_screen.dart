@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class TwoFAScreen extends StatefulWidget {
+  const TwoFAScreen({super.key});
+
   @override
   State<TwoFAScreen> createState() => _TwoFAScreenState();
 }

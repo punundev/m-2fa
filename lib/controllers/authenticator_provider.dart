@@ -70,18 +70,60 @@ class AuthenticatorProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Future<void> deleteAccount(String accountIdString) async {
+  //   final int accountIdInt = int.tryParse(accountIdString) ?? -1;
+
+  //   try {
+  //     await supabase.from('totp_secrets').delete().eq('id', accountIdString);
+
+  //     _accounts.removeWhere((account) => account.id == accountIdInt);
+
+  //     notifyListeners();
+  //   } catch (e) {
+  //     debugPrint('Error deleting TOTP account with ID $accountIdString: $e');
+  //     rethrow;
+  //   }
+  // }
+
   Future<void> deleteAccount(String accountIdString) async {
-    final int accountIdInt = int.tryParse(accountIdString) ?? -1;
-
     try {
-      await supabase.from('totp_secrets').delete().eq('id', accountIdString);
+      debugPrint('--- DELETE START ---');
+      debugPrint('Raw ID from UI: $accountIdString');
 
-      _accounts.removeWhere((account) => account.id == accountIdInt);
+      // 1. Determine type (Supabase is strict: int8 vs text)
+      final dynamic idToPass = int.tryParse(accountIdString) ?? accountIdString;
+      debugPrint('Converted ID Type: ${idToPass.runtimeType}');
 
+      // 2. Execute delete with .select()
+      // This forces Supabase to return the deleted data.
+      // If 'data' is empty, it means NOTHING was deleted.
+      final data = await supabase
+          .from('totp_secrets')
+          .delete()
+          .eq('id', idToPass)
+          .select();
+
+      debugPrint('Supabase Response Data: $data');
+
+      if ((data as List).isEmpty) {
+        debugPrint(
+          '!!! ZERO ROWS DELETED !!! This is usually an RLS Policy issue or ID mismatch.',
+        );
+        // Throwing a manual error so your UI SnackBar actually shows something
+        throw Exception('Database rejected delete. Check RLS policies.');
+      }
+
+      // 3. If we got here, it actually deleted from DB
+      _accounts.removeWhere(
+        (account) => account.id.toString() == accountIdString,
+      );
       notifyListeners();
+
+      debugPrint('--- DELETE SUCCESS ---');
     } catch (e) {
-      debugPrint('Error deleting TOTP account with ID $accountIdString: $e');
-      rethrow;
+      debugPrint('--- DELETE CRASHED ---');
+      debugPrint('Error: $e');
+      rethrow; // This will trigger the catch block in your HomeScreen
     }
   }
 

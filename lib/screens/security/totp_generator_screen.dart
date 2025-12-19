@@ -35,8 +35,7 @@ class _TOTPGeneratorScreenState extends State<TOTPGeneratorScreen> {
 
   void _startTotpGeneration() {
     _secret =
-        context.read<AuthProvider>().user?.appMetadata?['2fa_secret']
-            as String?;
+        context.read<AuthProvider>().user?.appMetadata['2fa_secret'] as String?;
 
     if (_secret == null || _secret!.isEmpty) {
       if (mounted) {
@@ -107,7 +106,7 @@ class _TOTPGeneratorScreenState extends State<TOTPGeneratorScreen> {
     final primaryColor = Theme.of(context).primaryColor;
 
     final is2FAEnabled =
-        context.read<AuthProvider>().user?.appMetadata?['2fa_enabled'] == true;
+        context.read<AuthProvider>().user?.appMetadata['2fa_enabled'] == true;
     final userEmail =
         context.read<AuthProvider>().user?.email ?? 'Unknown User';
 

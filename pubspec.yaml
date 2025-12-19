@@ -50,6 +50,7 @@ flutter:
     - family: KantumruyPro
       fonts:
         - asset: assets/fonts/KantumruyPro.ttf
+        - asset: assets/fonts/Poppins-Regular.ttf
 
 flutter_launcher_icons:
   android: true

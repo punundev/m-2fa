@@ -90,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    const double _textSize = 16.0;
+    const double textSize = 16.0;
 
     final primaryColor = Theme.of(context).primaryColor;
 
@@ -209,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 text: TextSpan(
                   text: "Don't have an account? ",
                   style: TextStyle(
-                    fontSize: _textSize,
+                    fontSize: textSize,
                     color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                   children: [
@@ -218,7 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: primaryColor,
-                        fontSize: _textSize,
+                        fontSize: textSize,
                       ),
                     ),
                   ],

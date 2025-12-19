@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 const String _appName = 'Nun Authenticator';
 
 class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({Key? key}) : super(key: key);
+  const ForgotPasswordScreen({super.key});
 
   @override
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
