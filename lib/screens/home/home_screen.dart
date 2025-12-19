@@ -25,10 +25,8 @@ class _HomeScreenState extends State<HomeScreen> {
       context.read<AuthenticatorProvider>().fetchAccounts();
     });
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() {});
-      }
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
     });
   }
 
@@ -41,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _handleAddAccount(BuildContext context) async {
     await Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (context) => const QRScannerScreen()));
+    ).push(MaterialPageRoute(builder: (_) => const QRScannerScreen()));
 
     if (!mounted) return;
     context.read<AuthenticatorProvider>().fetchAccounts();
@@ -79,96 +77,44 @@ class _HomeScreenState extends State<HomeScreen> {
     return null;
   }
 
-  // Future<void> _confirmAndDeleteAccount(
-  //   BuildContext context,
-  //   AuthenticatorAccount account,
-  // ) async {
-  //   final bool? shouldDelete = await showDialog<bool>(
-  //     context: context,
-  //     builder: (BuildContext dialogContext) {
-  //       return AlertDialog(
-  //         title: const Text('Delete Account?'),
-  //         content: Text(
-  //           'Are you sure you want to remove the 2FA account for ${account.serviceName} (${account.email})? This action cannot be undone.',
-  //         ),
-  //         actions: <Widget>[
-  //           TextButton(
-  //             child: const Text('Cancel'),
-  //             onPressed: () => Navigator.of(dialogContext).pop(false),
-  //           ),
-  //           TextButton(
-  //             child: const Text('Delete', style: TextStyle(color: Colors.red)),
-  //             onPressed: () => Navigator.of(dialogContext).pop(true),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-
-  //   if (shouldDelete == true) {
-  //     final provider = context.read<AuthenticatorProvider>();
-  //     await provider.deleteAccount(account.id);
-  //     await provider.fetchAccounts(); // Ensure list updates
-
-  //     if (mounted) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text('${account.serviceName} removed.')),
-  //       );
-  //     }
-  //   }
-  // }
-
   Future<void> _confirmAndDeleteAccount(
     BuildContext context,
     AuthenticatorAccount account,
   ) async {
-    // 1. Save the provider reference before any 'await'
-    // to avoid "looking up deactivated widget"
     final provider = context.read<AuthenticatorProvider>();
 
-    final bool? shouldDelete = await showDialog<bool>(
+    final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Delete Account?'),
-          content: Text(
-            'Are you sure you want to remove the 2FA account for ${account.serviceName} (${account.email})? This action cannot be undone.',
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Account?'),
+        content: Text(
+          'Remove 2FA for ${account.serviceName} (${account.email})?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-            ),
-            TextButton(
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-            ),
-          ],
-        );
-      },
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
 
-    // 2. Check if the widget is still in the tree before proceeding
     if (shouldDelete == true && context.mounted) {
       try {
         await provider.deleteAccount(account.id);
-
-        // Refresh after delete
-        await provider.fetchAccounts();
-
-        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              '${account.serviceName} account removed successfully.',
-            ),
+            content: Text('${account.serviceName} removed successfully'),
           ),
         );
-      } catch (e) {
-        if (!context.mounted) return;
+      } catch (_) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Failed to delete account. Please try again.'),
+            content: Text('Failed to delete account'),
             backgroundColor: Colors.red,
           ),
         );
@@ -178,8 +124,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authenticatorProvider = context.watch<AuthenticatorProvider>();
-    final accounts = authenticatorProvider.accounts;
+    final provider = context.watch<AuthenticatorProvider>();
+    final groupedAccounts = provider.groupedAccounts;
+    final serviceNames = groupedAccounts.keys.toList();
+
     final primaryColor = Theme.of(context).primaryColor;
 
     final currentSecond = (DateTime.now().millisecondsSinceEpoch / 1000)
@@ -202,60 +150,45 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         automaticallyImplyLeading: false,
       ),
-      body: authenticatorProvider.isLoading
+      body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : accounts.isEmpty
+          : groupedAccounts.isEmpty
           ? _buildEmptyState()
           : ListView.builder(
-              // FIX: Added bottom padding (80.0) so items aren't hidden by FAB
-              padding: const EdgeInsets.only(bottom: 80.0),
-              itemCount: accounts.length,
+              padding: const EdgeInsets.only(bottom: 80),
+              itemCount: serviceNames.length,
               itemBuilder: (context, index) {
-                final account = accounts[index];
-                final code = authenticatorProvider.generateCode(account.secret);
+                final serviceName = serviceNames[index];
+                final accounts = groupedAccounts[serviceName]!;
 
-                // FIX: Added Swipe-to-Delete functionality
-                return Dismissible(
-                  key: ValueKey(account.id),
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 20),
-                    child: const Icon(Icons.delete, color: Colors.white),
-                  ),
+                return Column(
+                  children: accounts.map((account) {
+                    final code = provider.generateCode(account.secret);
 
-                  // confirmDismiss: (direction) async {
-                  //   await _confirmAndDeleteAccount(context, account);
-                  //   return false; // Handled by our own dialog refresh
-                  // },
-                  confirmDismiss: (direction) async {
-                    try {
-                      await _confirmAndDeleteAccount(context, account);
-                      // We return false because _confirmAndDeleteAccount handles
-                      // the refresh via provider.fetchAccounts()
-                      return false;
-                    } catch (e) {
-                      // Show the "fucking error" here
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Error: $e'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return false;
-                    }
-                  },
-
-                  child: _buildAccountTile(
-                    key: ValueKey(account.id),
-                    context,
-                    account: account,
-                    code: code,
-                    primaryColor: primaryColor,
-                    progressValue: progressValue,
-                    secondsRemaining: secondsRemaining,
-                  ),
+                    return Dismissible(
+                      key: ValueKey(account.id),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      confirmDismiss: (_) async {
+                        await _confirmAndDeleteAccount(context, account);
+                        return false;
+                      },
+                      child: _buildAccountTile(
+                        key: ValueKey(account.id),
+                        context,
+                        account: account,
+                        code: code,
+                        primaryColor: primaryColor,
+                        progressValue: progressValue,
+                        secondsRemaining: secondsRemaining,
+                      ),
+                    );
+                  }).toList(),
                 );
               },
             ),
@@ -340,7 +273,6 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       account.serviceName,
@@ -348,7 +280,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: FontWeight.bold,
                         fontSize: 17,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       account.email,
@@ -356,14 +287,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Colors.grey.shade600,
                         fontSize: 14,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 16),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
                     code,
@@ -385,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           value: progressValue,
                           strokeWidth: 3,
                           color: secondsRemaining < 5
-                              ? Colors.red.shade600
+                              ? Colors.red
                               : primaryColor,
                           backgroundColor: Colors.grey.shade200,
                         ),
@@ -393,10 +322,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         '$secondsRemaining',
                         style: TextStyle(
-                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: secondsRemaining < 5
-                              ? Colors.red.shade600
+                              ? Colors.red
                               : Colors.black87,
                         ),
                       ),
@@ -483,8 +411,6 @@ class _HomeScreenState extends State<HomeScreen> {
 //       return 'assets/images/supabase.png';
 //     } else if (lowerCaseName.contains('firebase')) {
 //       return 'assets/images/firebase.png';
-//     } else if (lowerCaseName.contains('facebook')) {
-//       return 'assets/images/facebook.png';
 //     } else if (lowerCaseName.contains('termius')) {
 //       return 'assets/images/termius.png';
 //     } else if (lowerCaseName.contains('nun note')) {
@@ -499,10 +425,12 @@ class _HomeScreenState extends State<HomeScreen> {
 //     return null;
 //   }
 
-//   void _confirmAndDeleteAccount(
+//   Future<void> _confirmAndDeleteAccount(
 //     BuildContext context,
 //     AuthenticatorAccount account,
 //   ) async {
+//     final provider = context.read<AuthenticatorProvider>();
+
 //     final bool? shouldDelete = await showDialog<bool>(
 //       context: context,
 //       builder: (BuildContext dialogContext) {
@@ -514,28 +442,24 @@ class _HomeScreenState extends State<HomeScreen> {
 //           actions: <Widget>[
 //             TextButton(
 //               child: const Text('Cancel'),
-//               onPressed: () {
-//                 Navigator.of(dialogContext).pop(false);
-//               },
+//               onPressed: () => Navigator.of(dialogContext).pop(false),
 //             ),
 //             TextButton(
 //               child: const Text('Delete', style: TextStyle(color: Colors.red)),
-//               onPressed: () {
-//                 Navigator.of(dialogContext).pop(true);
-//               },
+//               onPressed: () => Navigator.of(dialogContext).pop(true),
 //             ),
 //           ],
 //         );
 //       },
 //     );
 
-//     if (shouldDelete == true) {
-//       if (!mounted) return;
-
+//     if (shouldDelete == true && context.mounted) {
 //       try {
-//         await context.read<AuthenticatorProvider>().deleteAccount(account.id);
+//         await provider.deleteAccount(account.id);
 
-//         if (!mounted) return;
+//         await provider.fetchAccounts();
+
+//         if (!context.mounted) return;
 //         ScaffoldMessenger.of(context).showSnackBar(
 //           SnackBar(
 //             content: Text(
@@ -543,17 +467,11 @@ class _HomeScreenState extends State<HomeScreen> {
 //             ),
 //           ),
 //         );
-
-//         Future.delayed(Duration.zero, () {
-//           if (mounted) {
-//             context.read<AuthenticatorProvider>().fetchAccounts();
-//           }
-//         });
 //       } catch (e) {
-//         if (!mounted) return;
+//         if (!context.mounted) return;
 //         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(
-//             content: const Text('Failed to delete account. Please try again.'),
+//           const SnackBar(
+//             content: Text('Failed to delete account. Please try again.'),
 //             backgroundColor: Colors.red,
 //           ),
 //         );
@@ -572,6 +490,9 @@ class _HomeScreenState extends State<HomeScreen> {
 //     final secondsRemaining = 30 - (currentSecond % 30);
 //     final progressValue = secondsRemaining / 30;
 
+//     final groupedAccounts = authenticatorProvider.groupedAccounts;
+//     final serviceNames = groupedAccounts.keys.toList();
+
 //     return Scaffold(
 //       appBar: AppBar(
 //         title: const Text(
@@ -580,57 +501,58 @@ class _HomeScreenState extends State<HomeScreen> {
 //         ),
 //         backgroundColor: primaryColor,
 //         foregroundColor: Colors.white,
-//         actions: const [],
 //         elevation: 0,
 //         leading: IconButton(
 //           icon: const Icon(Icons.menu),
-//           onPressed: () {
-//             Scaffold.of(context).openDrawer();
-//           },
+//           onPressed: () => Scaffold.of(context).openDrawer(),
 //         ),
 //         automaticallyImplyLeading: false,
 //       ),
-
 //       body: authenticatorProvider.isLoading
 //           ? const Center(child: CircularProgressIndicator())
 //           : accounts.isEmpty
-//           ? Center(
-//               child: Column(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: [
-//                   Icon(
-//                     Icons.qr_code_scanner,
-//                     size: 80,
-//                     color: Colors.grey.shade400,
-//                   ),
-//                   const SizedBox(height: 20),
-//                   const Text(
-//                     'No Authenticator Accounts Added',
-//                     style: TextStyle(fontSize: 18, color: Colors.grey),
-//                   ),
-//                   const SizedBox(height: 10),
-//                   Text(
-//                     'Tap the "+" button to scan a 2FA QR code.',
-//                     style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-//                   ),
-//                 ],
-//               ),
-//             )
+//           ? _buildEmptyState()
 //           : ListView.builder(
-//               padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+//               padding: const EdgeInsets.only(bottom: 80.0),
 //               itemCount: accounts.length,
 //               itemBuilder: (context, index) {
 //                 final account = accounts[index];
 //                 final code = authenticatorProvider.generateCode(account.secret);
 
-//                 return _buildAccountTile(
+//                 return Dismissible(
 //                   key: ValueKey(account.id),
-//                   context,
-//                   account: account,
-//                   code: code,
-//                   primaryColor: primaryColor,
-//                   progressValue: progressValue,
-//                   secondsRemaining: secondsRemaining,
+//                   direction: DismissDirection.endToStart,
+//                   background: Container(
+//                     color: Colors.red,
+//                     alignment: Alignment.centerRight,
+//                     padding: const EdgeInsets.only(right: 20),
+//                     child: const Icon(Icons.delete, color: Colors.white),
+//                   ),
+
+//                   confirmDismiss: (direction) async {
+//                     try {
+//                       await _confirmAndDeleteAccount(context, account);
+//                       return false;
+//                     } catch (e) {
+//                       ScaffoldMessenger.of(context).showSnackBar(
+//                         SnackBar(
+//                           content: Text('Error: $e'),
+//                           backgroundColor: Colors.red,
+//                         ),
+//                       );
+//                       return false;
+//                     }
+//                   },
+
+//                   child: _buildAccountTile(
+//                     key: ValueKey(account.id),
+//                     context,
+//                     account: account,
+//                     code: code,
+//                     primaryColor: primaryColor,
+//                     progressValue: progressValue,
+//                     secondsRemaining: secondsRemaining,
+//                   ),
 //                 );
 //               },
 //             ),
@@ -639,6 +561,27 @@ class _HomeScreenState extends State<HomeScreen> {
 //         backgroundColor: primaryColor,
 //         foregroundColor: Colors.white,
 //         child: const Icon(Icons.qr_code_scanner),
+//       ),
+//     );
+//   }
+
+//   Widget _buildEmptyState() {
+//     return Center(
+//       child: Column(
+//         mainAxisAlignment: MainAxisAlignment.center,
+//         children: [
+//           Icon(Icons.qr_code_scanner, size: 80, color: Colors.grey.shade400),
+//           const SizedBox(height: 20),
+//           const Text(
+//             'No Authenticator Accounts Added',
+//             style: TextStyle(fontSize: 18, color: Colors.grey),
+//           ),
+//           const SizedBox(height: 10),
+//           Text(
+//             'Tap the "+" button to scan a 2FA QR code.',
+//             style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+//           ),
+//         ],
 //       ),
 //     );
 //   }
