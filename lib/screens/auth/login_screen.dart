@@ -22,7 +22,37 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Use a small delay to ensure the context is ready for navigation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AuthProvider>().addListener(_onAuthChanged);
+      }
+    });
+  }
+
+  void _onAuthChanged() {
+    if (!mounted) return;
+    final auth = context.read<AuthProvider>();
+
+    // Only navigate if we have both user and profile (or special case for 2FA)
+    if (auth.user != null && (auth.profile != null || auth.is2FARequired)) {
+      if (auth.is2FARequired) {
+        Navigator.pushReplacementNamed(context, '/2fa');
+      } else {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    // It's important to remove the listener!
+    // But we need to be careful if context is no longer valid
+    try {
+      context.read<AuthProvider>().removeListener(_onAuthChanged);
+    } catch (_) {}
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -32,13 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => loading = true);
     try {
       await auth.login(emailController.text, passwordController.text);
-
-      if (!mounted) return;
-      if (auth.is2FARequired) {
-        Navigator.pushReplacementNamed(context, '/2fa');
-      } else {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
+      // Navigation is now handled by _onAuthChanged listener
     } catch (e) {
       if (!mounted) return;
       String message = e.toString().contains('Exception:')
@@ -52,10 +76,30 @@ class _LoginScreenState extends State<LoginScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-    } finally {
-      if (mounted) {
-        setState(() => loading = false);
-      }
+      setState(() => loading = false);
+    }
+  }
+
+  Future<void> _handleOAuthLogin(AuthProvider auth, String provider) async {
+    setState(() => loading = true);
+    try {
+      await auth.oauthLogin(provider);
+      // For OAuth, we just initiate. The redirect back to app
+      // will be caught by the onAuthStateChange listener in AuthProvider,
+      // which triggers _onAuthChanged here.
+    } catch (e) {
+      if (!mounted) return;
+      String message = e.toString().contains('Exception:')
+          ? e.toString().split('Exception: ').last
+          : 'An unknown OAuth error occurred.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('OAuth failed: $message'),
+          backgroundColor: Colors.red.withOpacity(0.8),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      setState(() => loading = false);
     }
   }
 
@@ -316,34 +360,6 @@ class _LoginScreenState extends State<LoginScreen> {
         ],
       ),
     );
-  }
-
-  Future<void> _handleOAuthLogin(AuthProvider auth, String provider) async {
-    setState(() => loading = true);
-    try {
-      await auth.oauthLogin(provider);
-
-      if (!mounted) return;
-      if (auth.is2FARequired) {
-        Navigator.pushReplacementNamed(context, '/2fa');
-      } else {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    } catch (e) {
-      if (!mounted) return;
-      String message = e.toString().contains('Exception:')
-          ? e.toString().split('Exception: ').last
-          : 'An unknown OAuth error occurred.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('OAuth failed: $message'),
-          backgroundColor: Colors.red.withOpacity(0.8),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => loading = false);
-    }
   }
 }
 

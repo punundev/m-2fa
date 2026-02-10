@@ -15,29 +15,65 @@ class AuthProvider extends ChangeNotifier {
   bool is2FARequired = false;
   String? currentUserId;
 
-  Future<void> fetchProfile() async {
-    if (_user == null) return;
-
-    try {
-      final response = await supabase
-          .from('profiles')
-          .select('id, full_name, avatar_url, hashed_pin')
-          .eq('id', _user!.id)
-          .single();
-
-      if (response.isNotEmpty) {
-        _profile = ProfileModel.fromJson(response);
-      } else {
-        print('Error: Profile row missing for user ${_user!.id}');
-        _profile = null;
-      }
-    } catch (e) {
-      print('Error fetching profile: $e');
-      _profile = null;
+  AuthProvider() {
+    _initAuthListener();
+    _user = supabase.auth.currentUser;
+    if (_user != null) {
+      currentUserId = _user!.id;
+      is2FARequired = _user!.appMetadata['2fa_enabled'] == true;
     }
   }
 
-  @override
+  void _initAuthListener() {
+    supabase.auth.onAuthStateChange.listen((data) async {
+      final AuthChangeEvent event = data.event;
+      final Session? session = data.session;
+
+      if (event == AuthChangeEvent.signedIn ||
+          event == AuthChangeEvent.tokenRefreshed) {
+        if (session != null) {
+          _user = session.user;
+          currentUserId = _user!.id;
+          is2FARequired = _user!.appMetadata['2fa_enabled'] == true;
+          await fetchProfile();
+        }
+      } else if (event == AuthChangeEvent.signedOut) {
+        _user = null;
+        _profile = null;
+        currentUserId = null;
+        is2FARequired = false;
+        notifyListeners();
+      }
+    });
+  }
+
+  Future<void> fetchProfile({int retries = 5}) async {
+    final currentUser = supabase.auth.currentUser;
+    if (currentUser == null) return;
+
+    for (int i = 0; i < retries; i++) {
+      try {
+        final response = await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url, hashed_pin')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+
+        if (response != null) {
+          _profile = ProfileModel.fromJson(response);
+          notifyListeners();
+          return;
+        } else {
+          // Profile might still be being created by trigger
+          await Future.delayed(Duration(milliseconds: 500 * (i + 1)));
+        }
+      } catch (e) {
+        debugPrint('Error fetching profile (attempt $i): $e');
+      }
+    }
+    notifyListeners();
+  }
+
   Future<bool> reloadUser() async {
     final session = supabase.auth.currentSession;
     if (session == null) {
@@ -48,11 +84,10 @@ class AuthProvider extends ChangeNotifier {
     }
 
     _user = session.user;
+    currentUserId = _user!.id;
+    is2FARequired = _user!.appMetadata['2fa_enabled'] == true;
 
     await fetchProfile();
-
-    notifyListeners();
-
     return _profile != null;
   }
 
@@ -63,12 +98,12 @@ class AuthProvider extends ChangeNotifier {
     );
 
     if (res.user == null) {
-      throw Exception('Login failed');
+      throw Exception('Login failed: Invalid credentials');
     }
 
     _user = res.user;
-    currentUserId = res.user!.id;
-    is2FARequired = res.user!.appMetadata['2fa_enabled'] == true;
+    currentUserId = _user!.id;
+    is2FARequired = _user!.appMetadata['2fa_enabled'] == true;
 
     await fetchProfile();
     notifyListeners();
@@ -82,9 +117,11 @@ class AuthProvider extends ChangeNotifier {
     }
 
     _user = res.user;
-    currentUserId = res.user!.id;
+    currentUserId = res.user?.id;
 
-    await fetchProfile();
+    if (res.session != null) {
+      await fetchProfile();
+    }
     notifyListeners();
   }
 
@@ -103,18 +140,6 @@ class AuthProvider extends ChangeNotifier {
       oauthProvider,
       redirectTo: 'io.supabase.flutter://callback',
     );
-
-    final user = supabase.auth.currentUser;
-    if (user == null) {
-      throw Exception('OAuth login failed');
-    }
-
-    _user = user;
-    currentUserId = user.id;
-    is2FARequired = user.appMetadata['2fa_enabled'] == true;
-
-    await fetchProfile();
-    notifyListeners();
   }
 
   Future<void> verify2FA(String code) async {
@@ -147,12 +172,10 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> logout() async {
     await supabase.auth.signOut();
-
     _user = null;
     _profile = null;
     currentUserId = null;
     is2FARequired = false;
-
     notifyListeners();
   }
 }
