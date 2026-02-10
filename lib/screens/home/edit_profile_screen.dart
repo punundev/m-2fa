@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:auth/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +19,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _nameController = TextEditingController();
   bool _loading = false;
   File? _imageFile;
-
   String _currentAvatarUrl = '';
 
   @override
@@ -58,9 +58,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       if (_imageFile != null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(T.uploadingAvatar)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(T.uploadingAvatar),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
         finalAvatarUrl = await StorageService.uploadAvatar(_imageFile!);
       }
 
@@ -71,11 +74,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (mounted) {
         Provider.of<AuthProvider>(context, listen: false).reloadUser();
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(T.profileSaveSuccess),
-            backgroundColor: Colors.green,
+            backgroundColor: Colors.green.withOpacity(0.8),
+            behavior: SnackBarBehavior.floating,
           ),
         );
         Navigator.pop(context);
@@ -85,7 +88,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${T.profileSaveFailed}${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: Colors.red.withOpacity(0.8),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -94,11 +98,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  InputDecoration _glassInputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Colors.white70),
+      prefixIcon: Icon(icon, color: Colors.white70),
+      filled: true,
+      fillColor: Colors.white.withOpacity(0.1),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Colors.white54, width: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final T = AppLocalizations.of(context)!;
-
     final primaryColor = Theme.of(context).primaryColor;
+
     final displayImage = _imageFile != null
         ? FileImage(_imageFile!) as ImageProvider
         : (_currentAvatarUrl.isNotEmpty
@@ -110,102 +136,217 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         : '?';
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(T.editProfileTitle),
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
+        title: Text(
+          T.editProfileTitle,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Center(
-              child: Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundColor: primaryColor.withOpacity(0.15),
-                    backgroundImage: displayImage,
-                    child: displayImage == null
-                        ? Text(
-                            initialName,
-                            style: TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.bold,
-                              color: primaryColor,
-                            ),
-                          )
-                        : null,
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: CircleAvatar(
-                      backgroundColor: primaryColor,
-                      radius: 20,
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.camera_alt,
-                          size: 20,
-                          color: Colors.white,
-                        ),
-                        onPressed: _pickImage,
-                      ),
-                    ),
-                  ),
+      body: Stack(
+        children: [
+          // Dynamic Background
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  primaryColor.withBlue(150),
+                  primaryColor.withRed(100).withBlue(200),
+                  primaryColor.withRed(50),
                 ],
               ),
             ),
-            const SizedBox(height: 30),
-
-            TextField(
-              controller: _nameController,
-              decoration: _inputDecoration(
-                T.displayNameLabel,
-                Icons.person_outline,
-                primaryColor,
+          ),
+          // Floating Orbs
+          Positioned(
+            top: -50,
+            left: -50,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.1),
               ),
             ),
-            const SizedBox(height: 16),
-
-            const SizedBox(height: 40),
-
-            _loading
-                ? Center(child: CircularProgressIndicator(color: primaryColor))
-                : ElevatedButton(
-                    onPressed: _loading ? null : _handleSaveProfile,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+          ),
+          Positioned(
+            bottom: -50,
+            right: -50,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.05),
+              ),
+            ),
+          ),
+          // Glass Content
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 20,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(30),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                    child: Container(
+                      padding: const EdgeInsets.all(32.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Center(
+                            child: Stack(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white38,
+                                      width: 4,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 20,
+                                        spreadRadius: 5,
+                                      ),
+                                    ],
+                                  ),
+                                  child: CircleAvatar(
+                                    radius: 64,
+                                    backgroundColor: Colors.white.withOpacity(
+                                      0.2,
+                                    ),
+                                    backgroundImage: displayImage,
+                                    child: displayImage == null
+                                        ? Text(
+                                            initialName,
+                                            style: const TextStyle(
+                                              fontSize: 48,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : null,
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 4,
+                                  right: 4,
+                                  child: GestureDetector(
+                                    onTap: _pickImage,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.2,
+                                            ),
+                                            blurRadius: 10,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        Icons.camera_alt_rounded,
+                                        size: 20,
+                                        color: primaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                          TextField(
+                            controller: _nameController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: _glassInputDecoration(
+                              T.displayNameLabel,
+                              Icons.person_rounded,
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                          _loading
+                              ? const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 5),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ElevatedButton(
+                                    onPressed: _loading
+                                        ? null
+                                        : _handleSaveProfile,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      foregroundColor: primaryColor,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 18,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    child: Text(
+                                      T.saveProfile,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                        ],
                       ),
                     ),
-                    child: Text(
-                      T.saveProfile,
-                      style: const TextStyle(fontSize: 18, color: Colors.white),
-                    ),
                   ),
-          ],
-        ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
-}
-
-InputDecoration _inputDecoration(
-  String label,
-  IconData icon,
-  Color primaryColor,
-) {
-  return InputDecoration(
-    labelText: label,
-    prefixIcon: Icon(icon, color: primaryColor),
-    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: primaryColor, width: 2),
-    ),
-  );
 }

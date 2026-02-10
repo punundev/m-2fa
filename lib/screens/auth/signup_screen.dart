@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:auth/controllers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -31,9 +32,10 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _handleSignup() async {
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Error: Passwords do not match."),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text("Error: Passwords do not match."),
+          backgroundColor: Colors.red.withOpacity(0.8),
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
@@ -41,9 +43,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
     if (_passwordController.text.length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Password must be at least 8 characters long."),
-          backgroundColor: Colors.orange,
+        SnackBar(
+          content: const Text("Password must be at least 8 characters long."),
+          backgroundColor: Colors.orange.withOpacity(0.8),
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
@@ -70,7 +73,8 @@ class _SignupScreenState extends State<SignupScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: Theme.of(context).colorScheme.error,
+          backgroundColor: Colors.red.withOpacity(0.8),
+          behavior: SnackBarBehavior.floating,
         ),
       );
     } finally {
@@ -78,15 +82,13 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  InputDecoration _inputDecoration(
+  InputDecoration _glassInputDecoration(
     String label,
     IconData icon,
     BuildContext context, {
     bool isPassword = false,
     bool isConfirmPassword = false,
   }) {
-    final primaryColor = Theme.of(context).primaryColor;
-
     bool isObscure = false;
     VoidCallback? toggleCallback;
 
@@ -104,17 +106,27 @@ class _SignupScreenState extends State<SignupScreen> {
 
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(icon, color: primaryColor),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      labelStyle: const TextStyle(color: Colors.white70),
+      prefixIcon: Icon(icon, color: Colors.white70),
+      filled: true,
+      fillColor: Colors.white.withOpacity(0.1),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+      ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: primaryColor, width: 2),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Colors.white54, width: 2),
       ),
       suffixIcon: (isPassword || isConfirmPassword)
           ? IconButton(
               icon: Icon(
                 isObscure ? Icons.visibility : Icons.visibility_off,
-                color: primaryColor,
+                color: Colors.white70,
               ),
               onPressed: toggleCallback,
             )
@@ -127,110 +139,191 @@ class _SignupScreenState extends State<SignupScreen> {
     final primaryColor = Theme.of(context).primaryColor;
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            SizedBox(height: MediaQuery.paddingOf(context).top + 60),
-
-            Text(
-              'Create Account',
-              style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: primaryColor,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: Stack(
+        children: [
+          // Dynamic Background
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  primaryColor.withBlue(150),
+                  primaryColor.withRed(100).withBlue(200),
+                  primaryColor.withRed(50),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Join the $_appName community',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-
-            const SizedBox(height: 40),
-
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: _inputDecoration(
-                'Email Address',
-                Icons.email_outlined,
-                context,
+          ),
+          // Floating Orbs
+          Positioned(
+            top: 100,
+            left: -40,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.08),
               ),
             ),
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: _passwordController,
-              obscureText: !_isPasswordVisible,
-              decoration: _inputDecoration(
-                'Password (Min 8 characters)',
-                Icons.lock_outline,
-                context,
-                isPassword: true,
+          ),
+          Positioned(
+            bottom: 60,
+            right: -30,
+            child: Container(
+              width: 280,
+              height: 280,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.05),
               ),
             ),
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: _confirmPasswordController,
-              obscureText: !_isConfirmPasswordVisible,
-              decoration: _inputDecoration(
-                'Confirm Password',
-                Icons.lock_reset_outlined,
-                context,
-                isConfirmPassword: true,
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            _loading
-                ? Center(child: CircularProgressIndicator(color: primaryColor))
-                : ElevatedButton(
-                    onPressed: _loading ? null : _handleSignup,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+          ),
+          // Content
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 20,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(30),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                    child: Container(
+                      padding: const EdgeInsets.all(32.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          const Text(
+                            'Create Account',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Join the $_appName community',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.7),
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                          TextField(
+                            controller: _emailController,
+                            style: const TextStyle(color: Colors.white),
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: _glassInputDecoration(
+                              'Email Address',
+                              Icons.email_rounded,
+                              context,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: _passwordController,
+                            style: const TextStyle(color: Colors.white),
+                            obscureText: !_isPasswordVisible,
+                            decoration: _glassInputDecoration(
+                              'Password',
+                              Icons.lock_rounded,
+                              context,
+                              isPassword: true,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: _confirmPasswordController,
+                            style: const TextStyle(color: Colors.white),
+                            obscureText: !_isConfirmPasswordVisible,
+                            decoration: _glassInputDecoration(
+                              'Confirm Password',
+                              Icons.lock_reset_rounded,
+                              context,
+                              isConfirmPassword: true,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          _loading
+                              ? const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : ElevatedButton(
+                                  onPressed: _loading ? null : _handleSignup,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: primaryColor,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 18,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: const Text(
+                                    'Sign Up',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                          const SizedBox(height: 32),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: RichText(
+                              text: const TextSpan(
+                                text: "Already have an account? ",
+                                style: TextStyle(color: Colors.white70),
+                                children: [
+                                  TextSpan(
+                                    text: "Login",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: const Text(
-                      'Sign Up',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
                   ),
-
-            const SizedBox(height: 40),
-
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: RichText(
-                text: TextSpan(
-                  text: "Already have an account? ",
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: "Login",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: primaryColor,
-                        fontSize: 16.0,
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ),
-
-            SizedBox(height: 40),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

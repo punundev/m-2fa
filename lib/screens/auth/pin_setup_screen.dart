@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:auth/utils/hashing.dart';
@@ -36,15 +37,21 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('PIN successfully set!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('PIN successfully set!'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
 
       Navigator.of(context).pushReplacementNamed('/home');
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving PIN: ${e.toString()}')),
+        SnackBar(
+          content: Text('Error saving PIN: ${e.toString()}'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     } finally {
       if (mounted) {
@@ -68,7 +75,10 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
           _savePin(value);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('PINs do not match. Start over.')),
+            const SnackBar(
+              content: Text('PINs do not match. Start over.'),
+              behavior: SnackBarBehavior.floating,
+            ),
           );
           setState(() {
             _currentStep = 'SET_PIN';
@@ -88,62 +98,145 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
         : 'Confirm Your New PIN';
 
     return Scaffold(
-      appBar: AppBar(title: Text(screenTitle)),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                screenTitle,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: Stack(
+        children: [
+          // Dynamic Background
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  primaryColor.withBlue(150),
+                  primaryColor.withRed(100).withBlue(200),
+                  primaryColor.withRed(50),
+                ],
               ),
-              const SizedBox(height: 40),
-
-              if (_isLoading)
-                CircularProgressIndicator(color: primaryColor)
-              else
-                SizedBox(
-                  width: 200,
-                  child: TextField(
-                    controller: _pinController,
-                    maxLength: 4,
-                    keyboardType: TextInputType.number,
-                    obscureText: true,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 32, letterSpacing: 20.0),
-                    decoration: InputDecoration(
-                      counterText: "",
-                      hintText: '----',
-                      hintStyle: TextStyle(
-                        color: Colors.grey.shade300,
-                        letterSpacing: 10.0,
+            ),
+          ),
+          // Floating Orbs
+          Positioned(
+            top: 60,
+            left: -30,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.08),
+              ),
+            ),
+          ),
+          // Content
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 20,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(30),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                    child: Container(
+                      padding: const EdgeInsets.all(32.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1.5,
+                        ),
                       ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: primaryColor, width: 2),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          const Icon(
+                            Icons.pin_rounded,
+                            size: 64,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            screenTitle,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                          if (_isLoading)
+                            const CircularProgressIndicator(color: Colors.white)
+                          else
+                            SizedBox(
+                              width: 220,
+                              child: TextField(
+                                controller: _pinController,
+                                maxLength: 4,
+                                keyboardType: TextInputType.number,
+                                obscureText: true,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  letterSpacing: 20.0,
+                                  color: Colors.white,
+                                ),
+                                decoration: InputDecoration(
+                                  counterText: "",
+                                  hintText: '----',
+                                  hintStyle: TextStyle(
+                                    color: Colors.white.withOpacity(0.2),
+                                    letterSpacing: 10.0,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white.withOpacity(0.05),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(
+                                      color: Colors.white.withOpacity(0.1),
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: const BorderSide(
+                                      color: Colors.white54,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                                onChanged: _handlePinInput,
+                              ),
+                            ),
+                          const SizedBox(height: 16),
+                          Text(
+                            _currentStep == 'SET_PIN'
+                                ? 'Enter your desired 4-digit PIN'
+                                : 'Re-enter your 4-digit PIN to confirm',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
                       ),
                     ),
-                    onChanged: _handlePinInput,
                   ),
                 ),
-
-              const SizedBox(height: 20),
-              Text(
-                _currentStep == 'SET_PIN'
-                    ? 'Enter your desired 4-digit PIN'
-                    : 'Re-enter your 4-digit PIN to confirm',
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
