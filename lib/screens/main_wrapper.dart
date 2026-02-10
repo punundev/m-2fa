@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:auth/controllers/auth_provider.dart';
 import 'package:auth/controllers/authenticator_provider.dart';
 import 'package:auth/screens/scan/qr_scanner_screen.dart';
 import 'package:flutter/material.dart';
@@ -41,6 +42,8 @@ class _MainWrapperState extends State<MainWrapper> {
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).primaryColor;
+    final authProvider = context.watch<AuthProvider>();
+    final avatarUrl = authProvider.profile?.avatarUrl;
 
     return Scaffold(
       body: Stack(
@@ -70,7 +73,12 @@ class _MainWrapperState extends State<MainWrapper> {
                     children: [
                       _buildNavItem(0, Icons.home_rounded, 'Home'),
                       _buildNavItem(2, Icons.settings_rounded, 'Settings'),
-                      _buildNavItem(1, Icons.person_rounded, 'Profile'),
+                      _buildNavItem(
+                        1,
+                        Icons.person_rounded,
+                        'Profile',
+                        avatarUrl: avatarUrl,
+                      ),
                     ],
                   ),
                 ),
@@ -109,7 +117,12 @@ class _MainWrapperState extends State<MainWrapper> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
+  Widget _buildNavItem(
+    int index,
+    IconData icon,
+    String label, {
+    String? avatarUrl,
+  }) {
     final isSelected = _selectedIndex == index;
     return GestureDetector(
       onTap: () => _onItemTapped(index),
@@ -117,11 +130,28 @@ class _MainWrapperState extends State<MainWrapper> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
-            size: 26,
-          ),
+          if (index == 1 && avatarUrl != null && avatarUrl.isNotEmpty)
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? Colors.white : Colors.white24,
+                  width: 0.5,
+                ),
+                image: DecorationImage(
+                  image: NetworkImage(avatarUrl),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            )
+          else
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
+              size: 26,
+            ),
           const SizedBox(height: 2),
           Text(
             label,

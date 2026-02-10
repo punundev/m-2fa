@@ -72,24 +72,45 @@ class _HomeScreenState extends State<HomeScreen> {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (ctx) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: AlertDialog(
-          backgroundColor: Colors.white.withOpacity(0.9),
+          backgroundColor: Colors.white.withOpacity(0.12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(30),
+            side: BorderSide(color: Colors.white.withOpacity(0.2), width: 1.5),
           ),
-          title: const Text('Delete Account?'),
+          title: const Text(
+            'Delete Account?',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
+            ),
+          ),
           content: Text(
-            'Remove 2FA for ${account.serviceName} (${account.email})?',
+            'Remove 2FA for ${account.serviceName} (${account.email})?\n\nThis action cannot be undone.',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 16,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white.withOpacity(0.7)),
+              ),
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              child: const Text(
+                'Delete',
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         ),
@@ -201,7 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                       child: Container(
-                        height: 50,
+                        height: 45,
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(16),
@@ -225,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
-                              vertical: 12,
+                              vertical: 10,
                             ),
                           ),
                         ),
@@ -254,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
 
                                 return Padding(
-                                  padding: const EdgeInsets.only(bottom: 16),
+                                  padding: const EdgeInsets.only(bottom: 6),
                                   child: Dismissible(
                                     key: ValueKey(account.id),
                                     direction: DismissDirection.endToStart,
@@ -264,7 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         color: Colors.red.withOpacity(0.8),
                                         alignment: Alignment.centerRight,
                                         padding: const EdgeInsets.only(
-                                          right: 20,
+                                          right: 10,
                                         ),
                                         child: const Icon(
                                           Icons.delete,

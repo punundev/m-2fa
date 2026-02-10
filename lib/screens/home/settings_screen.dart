@@ -20,16 +20,14 @@ class SettingsScreen extends StatelessWidget {
           T.settingsTitle,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 22,
+            fontSize: 24,
             color: Colors.white,
           ),
         ),
+        centerTitle: false,
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
       body: Stack(
         children: [
@@ -123,7 +121,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
                   _buildGlassCategory(
                     context,
                     title: T.language,
@@ -178,7 +176,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
                   _buildGlassCategory(
                     context,
                     title: T.primaryColor,

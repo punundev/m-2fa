@@ -65,19 +65,17 @@ class ProfileScreen extends StatelessWidget {
           extendBodyBehindAppBar: true,
           appBar: AppBar(
             title: Text(
-              T.appName,
+              T.profileTitle,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 22,
+                fontSize: 24,
                 color: Colors.white,
               ),
             ),
+            centerTitle: false,
+            automaticallyImplyLeading: false,
             backgroundColor: Colors.transparent,
             elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.menu, color: Colors.white),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
           ),
           body: Stack(
             children: [
@@ -133,14 +131,14 @@ class ProfileScreen extends StatelessWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(30),
                         child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                           child: Container(
-                            padding: const EdgeInsets.all(24.0),
+                            padding: const EdgeInsets.all(20.0),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.12),
+                              color: Colors.white.withOpacity(0.08),
                               borderRadius: BorderRadius.circular(30),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withOpacity(0.15),
                                 width: 1.5,
                               ),
                             ),
@@ -233,7 +231,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 10),
                       // Settings Section
                       ClipRRect(
                         borderRadius: BorderRadius.circular(30),
@@ -293,7 +291,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 20),
                       // Logout Button
                       Container(
                         width: double.infinity,
