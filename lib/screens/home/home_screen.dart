@@ -214,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Search Bar (Telegram Style)
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
+                    horizontal: 10,
                     vertical: 8.0,
                   ),
                   child: ClipRRect(
@@ -225,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 45,
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(26),
                           border: Border.all(
                             color: Colors.white.withOpacity(0.15),
                           ),
@@ -262,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       : groupedAccounts.isEmpty
                       ? _buildEmptyState()
                       : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+                          padding: const EdgeInsets.fromLTRB(10, 8, 10, 120),
                           itemCount: serviceNames.length,
                           itemBuilder: (context, index) {
                             final serviceName = serviceNames[index];
@@ -280,7 +280,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     key: ValueKey(account.id),
                                     direction: DismissDirection.endToStart,
                                     background: ClipRRect(
-                                      borderRadius: BorderRadius.circular(24),
+                                      borderRadius: BorderRadius.circular(32),
                                       child: Container(
                                         color: Colors.red.withOpacity(0.8),
                                         alignment: Alignment.centerRight,
@@ -496,14 +496,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      // IconButton(
-                      //   icon: const Icon(
-                      //     Icons.more_vert,
-                      //     color: Colors.white70,
-                      //   ),
-                      //   onPressed: () =>
-                      //       _confirmAndDeleteAccount(context, account),
-                      // ),
                     ],
                   ),
                 ],

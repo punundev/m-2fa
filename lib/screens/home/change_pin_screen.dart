@@ -204,7 +204,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
             child: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
+                  horizontal: 10.0,
                   vertical: 20,
                 ),
                 child: ClipRRect(
@@ -212,7 +212,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                     child: Container(
-                      padding: const EdgeInsets.all(32.0),
+                      padding: const EdgeInsets.all(22.0),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(30),

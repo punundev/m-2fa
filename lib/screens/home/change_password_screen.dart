@@ -190,13 +190,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(30),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                     child: Container(
-                      padding: const EdgeInsets.all(32.0),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(30),

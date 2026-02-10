@@ -156,7 +156,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             child: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
+                  horizontal: 10,
                   vertical: 20,
                 ),
                 child: ClipRRect(
@@ -164,7 +164,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                     child: Container(
-                      padding: const EdgeInsets.all(32.0),
+                      padding: const EdgeInsets.all(15),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(30),
