@@ -65,11 +65,20 @@ class _HomeScreenState extends State<HomeScreen> {
       return 'assets/images/firebase.png';
     } else if (lowerCaseName.contains('termius')) {
       return 'assets/images/termius.png';
+    } else if (lowerCaseName.contains('amazon web services')) {
+      return 'assets/images/aws.png';
+    } else if (lowerCaseName.contains('cloudflare')) {
+      return 'assets/images/cloudflare.png';
+    } else if (lowerCaseName.contains('coolify')) {
+      return 'assets/images/coolify.png';
     } else if (lowerCaseName.contains('nun note')) {
       return 'assets/images/nun-note.png';
     } else if (lowerCaseName.contains('hostinger') ||
         lowerCaseName.contains('namecheap')) {
       return 'assets/images/domain.png';
+    } else if (lowerCaseName.contains('nham') ||
+        lowerCaseName.contains('kammarng')) {
+      return 'assets/images/kammarng.png';
     } else if (lowerCaseName.contains('contabo') ||
         lowerCaseName.contains('interser')) {
       return 'assets/images/server.png';
