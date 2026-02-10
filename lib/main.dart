@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
     final primaryAppColor = settingsProvider.primaryColor;
 
     return MaterialApp(
-      title: 'Nun Auth',
+      title: 'Nun Authentication',
       initialRoute: '/splash',
       debugShowCheckedModeBanner: false,
 

@@ -11,9 +11,11 @@ class AuthenticatorProvider extends ChangeNotifier {
   // ========================
   List<AuthenticatorAccount> _accounts = [];
   bool _isLoading = false;
+  String _searchQuery = '';
 
   List<AuthenticatorAccount> get accounts => _accounts;
   bool get isLoading => _isLoading;
+  String get searchQuery => _searchQuery;
 
   // ========================
   // FETCH ACCOUNTS
@@ -48,7 +50,19 @@ class AuthenticatorProvider extends ChangeNotifier {
   Map<String, List<AuthenticatorAccount>> get groupedAccounts {
     final Map<String, List<AuthenticatorAccount>> grouped = {};
 
-    for (final account in _accounts) {
+    final filteredAccounts = _searchQuery.isEmpty
+        ? _accounts
+        : _accounts
+              .where(
+                (a) =>
+                    a.serviceName.toLowerCase().contains(
+                      _searchQuery.toLowerCase(),
+                    ) ||
+                    a.email.toLowerCase().contains(_searchQuery.toLowerCase()),
+              )
+              .toList();
+
+    for (final account in filteredAccounts) {
       grouped.putIfAbsent(account.serviceName, () => []);
       grouped[account.serviceName]!.add(account);
     }
@@ -127,6 +141,11 @@ class AuthenticatorProvider extends ChangeNotifier {
   // ========================
   // GENERATE OTP
   // ========================
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
   String generateCode(String secret) {
     if (secret.isEmpty) return '------';
 

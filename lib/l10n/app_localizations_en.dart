@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'Nun Auth';
+  String get appName => 'Nun Authentication';
 
   @override
   String get homeTitle => 'Home';

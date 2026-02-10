@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:auth/screens/scan/qr_scanner_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:auth/controllers/authenticator_provider.dart';
 import 'package:auth/models/authenticator_model.dart';
 
-const String _appName = 'Nun Auth';
+const String _appName = 'Nun Authentication';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -35,15 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _timer?.cancel();
     super.dispose();
-  }
-
-  void _handleAddAccount(BuildContext context) async {
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const QRScannerScreen()));
-
-    if (!mounted) return;
-    context.read<AuthenticatorProvider>().fetchAccounts();
   }
 
   String? _getAssetPath(String serviceName) {
@@ -129,8 +119,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<AuthenticatorProvider>();
-    final groupedAccounts = provider.groupedAccounts;
+    final authenticatorProvider = context.watch<AuthenticatorProvider>();
+    final groupedAccounts = authenticatorProvider.groupedAccounts;
     final serviceNames = groupedAccounts.keys.toList();
 
     final primaryColor = Theme.of(context).primaryColor;
@@ -147,16 +137,13 @@ class _HomeScreenState extends State<HomeScreen> {
           _appName,
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 22,
+            fontSize: 24,
             color: Colors.white,
           ),
         ),
+        centerTitle: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () => Scaffold.of(context).openDrawer(),
-        ),
       ),
       body: Stack(
         children: [
@@ -199,88 +186,119 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          // Main Content
-          provider.isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                )
-              : groupedAccounts.isEmpty
-              ? _buildEmptyState()
-              : SafeArea(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                    itemCount: serviceNames.length,
-                    itemBuilder: (context, index) {
-                      final serviceName = serviceNames[index];
-                      final accounts = groupedAccounts[serviceName]!;
-
-                      return Column(
-                        children: accounts.map((account) {
-                          final code = provider.generateCode(account.secret);
-
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: Dismissible(
-                              key: ValueKey(account.id),
-                              direction: DismissDirection.endToStart,
-                              background: ClipRRect(
-                                borderRadius: BorderRadius.circular(24),
-                                child: Container(
-                                  color: Colors.red.withOpacity(0.8),
-                                  alignment: Alignment.centerRight,
-                                  padding: const EdgeInsets.only(right: 20),
-                                  child: const Icon(
-                                    Icons.delete,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              confirmDismiss: (_) async {
-                                await _confirmAndDeleteAccount(
-                                  context,
-                                  account,
-                                );
-                                return false;
-                              },
-                              child: _buildAccountTile(
-                                key: ValueKey(account.id),
-                                context,
-                                account: account,
-                                code: code,
-                                primaryColor: Colors.white,
-                                progressValue: progressValue,
-                                secondsRemaining: secondsRemaining,
-                              ),
+          // Content
+          SafeArea(
+            child: Column(
+              children: [
+                // Search Bar (Telegram Style)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.15),
+                          ),
+                        ),
+                        child: TextField(
+                          onChanged: (value) {
+                            authenticatorProvider.setSearchQuery(value);
+                          },
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: 'Search accounts...',
+                            hintStyle: TextStyle(
+                              color: Colors.white.withOpacity(0.5),
                             ),
-                          );
-                        }).toList(),
-                      );
-                    },
+                            prefixIcon: Icon(
+                              Icons.search_rounded,
+                              color: Colors.white.withOpacity(0.7),
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-        ],
-      ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
+                Expanded(
+                  child: authenticatorProvider.isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        )
+                      : groupedAccounts.isEmpty
+                      ? _buildEmptyState()
+                      : ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+                          itemCount: serviceNames.length,
+                          itemBuilder: (context, index) {
+                            final serviceName = serviceNames[index];
+                            final accounts = groupedAccounts[serviceName]!;
+
+                            return Column(
+                              children: accounts.map((account) {
+                                final code = authenticatorProvider.generateCode(
+                                  account.secret,
+                                );
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: Dismissible(
+                                    key: ValueKey(account.id),
+                                    direction: DismissDirection.endToStart,
+                                    background: ClipRRect(
+                                      borderRadius: BorderRadius.circular(24),
+                                      child: Container(
+                                        color: Colors.red.withOpacity(0.8),
+                                        alignment: Alignment.centerRight,
+                                        padding: const EdgeInsets.only(
+                                          right: 20,
+                                        ),
+                                        child: const Icon(
+                                          Icons.delete,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    confirmDismiss: (_) async {
+                                      await _confirmAndDeleteAccount(
+                                        context,
+                                        account,
+                                      );
+                                      return false;
+                                    },
+                                    child: _buildAccountTile(
+                                      key: ValueKey(account.id),
+                                      context,
+                                      account: account,
+                                      code: code,
+                                      primaryColor: Colors.white,
+                                      progressValue: progressValue,
+                                      secondsRemaining: secondsRemaining,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            );
+                          },
+                        ),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: FloatingActionButton(
-          onPressed: () => _handleAddAccount(context),
-          backgroundColor: Colors.white,
-          foregroundColor: primaryColor,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
           ),
-          child: const Icon(Icons.qr_code_scanner_rounded, size: 28),
-        ),
+        ],
       ),
     );
   }
@@ -485,7 +503,7 @@ class _HomeScreenState extends State<HomeScreen> {
 // import 'package:auth/controllers/authenticator_provider.dart';
 // import 'package:auth/models/authenticator_model.dart';
 
-// const String _appName = 'Nun Auth';
+// const String _appName = 'Nun Authentication';
 
 // class HomeScreen extends StatefulWidget {
 //   const HomeScreen({super.key});

@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
   
-  "appName": "Nun Auth",
+  "appName": "Nun Authentication",
   "homeTitle": "Home",
   "profileTitle": "Profile",
   "settingsTitle": "Settings",
